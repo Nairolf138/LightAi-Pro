@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-black text-white;
+  }
+}
+
+@layer utilities {
+  .backdrop-blur-lg {
+    backdrop-filter: blur(16px);
+  }
+}
+
+.glow {
+  filter: drop-shadow(0 0 0.75rem theme('colors.yellow.400'));
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.gradient-text {
+  background: linear-gradient(to right, theme('colors.yellow.400'), theme('colors.orange.500'));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient 8s ease infinite;
+  background-size: 200% auto;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.matrix-bg {
+  background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)),
+              repeating-linear-gradient(0deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.1) 50%,
+                transparent 100%);
+  background-size: cover, 50px 50px;
+  animation: matrix 20s linear infinite;
+}
+
+@keyframes matrix {
+  0% {
+    background-position: center, 0 0;
+  }
+  100% {
+    background-position: center, 0 1000px;
+  }
+}
+
+.clip-path-slant {
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+}
+
+.perspective-text {
+  transform: perspective(1000px) rotateX(20deg);
+  transform-style: preserve-3d;
+}
+
+.card-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+.card-3d:hover {
+  transform: perspective(1000px) rotateY(10deg) rotateX(5deg) translateZ(20px);
+}
+
+.light-beam {
+  position: absolute;
+  width: 2px;
+  background: linear-gradient(to bottom, 
+    transparent,
+    theme('colors.yellow.400'),
+    transparent
+  );
+  animation: beam 2s ease-in-out infinite;
+  transform-origin: top;
+}
+
+@keyframes beam {
+  0%, 100% {
+    transform: rotate(-45deg) translateX(0);
+    opacity: 0;
+  }
+  50% {
+    transform: rotate(-45deg) translateX(100px);
+    opacity: 1;
+  }
+}
