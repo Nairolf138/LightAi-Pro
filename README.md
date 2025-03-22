@@ -15,20 +15,12 @@
 - 📊 **Tableau de bord intuitif** : Interface utilisateur moderne et ergonomique.
 - 🤖 **Apprentissage adaptatif** : L’IA apprend des préférences et optimise les configurations au fil du temps.
 
-## 🔧 Installation
 
-```bash
-git clone https://github.com/votre-repo/LightAI-Pro.git
-cd LightAI-Pro
-npm install  # ou pip install -r requirements.txt selon la techno
-```
+
 
 ## 🚀 Utilisation
 
-1. Lancez le logiciel :
-   ```bash
-   npm start  # ou python main.py selon la techno
-   ```
+1. Lancez le logiciel
 2. Connectez vos équipements DMX / Art-Net.
 3. Configurez vos scènes via l'interface intuitive.
 4. Profitez d'un éclairage intelligent optimisé par l'IA !
