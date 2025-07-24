@@ -66,20 +66,31 @@ function App() {
   };
 
   useEffect(() => {
-    let interval: number;
+    let interval: number | undefined;
     if (isPlaying) {
-      interval = setInterval(() => {
-        setCurrentTime(prev => (prev + 1) % 100);
-        if (currentTime % 20 === 0) {
-          setCurrentEffect(prev => (prev + 1) % effects.length);
-          if (profile) {
-            logEffectUsage(effects[currentEffect].name, effects[currentEffect].configuration);
+      interval = window.setInterval(() => {
+        setCurrentTime(prevTime => {
+          const newTime = (prevTime + 1) % 100;
+          if (newTime % 20 === 0) {
+            setCurrentEffect(prevEffect => {
+              const nextEffect = (prevEffect + 1) % effects.length;
+              if (profile) {
+                logEffectUsage(
+                  effects[nextEffect].name,
+                  effects[nextEffect].configuration
+                );
+              }
+              return nextEffect;
+            });
           }
-        }
+          return newTime;
+        });
       }, 100);
     }
-    return () => clearInterval(interval);
-  }, [isPlaying, currentTime, profile]);
+    return () => {
+      if (interval !== undefined) clearInterval(interval);
+    };
+  }, [isPlaying, profile]);
 
   const logEffectUsage = async (effectName: string, configuration: Record<string, any>) => {
     if (!profile) return;
