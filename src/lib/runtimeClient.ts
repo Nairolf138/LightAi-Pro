@@ -3,7 +3,9 @@ import type {
   HardwareDevice,
   NativeIpcApi,
   RuntimeStatus,
-  SendFrameRequest
+  SendFrameRequest,
+  VaultSecretKeyRequest,
+  VaultSecretRequest
 } from '../../desktop/ipc/contracts';
 
 const fallbackStatus: RuntimeStatus = {
@@ -33,5 +35,10 @@ export const runtimeClient = {
       return fallbackStatus;
     }
     return window.lightAiNative.getRuntimeStatus();
-  }
+  },
+  vaultSetSecret: async (request: VaultSecretRequest): Promise<void> => getNativeApi().vaultSetSecret(request),
+  vaultGetSecret: async (request: VaultSecretKeyRequest): Promise<string | null> =>
+    getNativeApi().vaultGetSecret(request),
+  vaultDeleteSecret: async (request: VaultSecretKeyRequest): Promise<void> =>
+    getNativeApi().vaultDeleteSecret(request)
 };

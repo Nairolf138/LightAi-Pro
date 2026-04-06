@@ -3,7 +3,10 @@ export const ipcChannels = {
   connectDevice: 'runtime:connect-device',
   disconnectDevice: 'runtime:disconnect-device',
   sendFrame: 'runtime:send-frame',
-  runtimeStatus: 'runtime:status'
+  runtimeStatus: 'runtime:status',
+  vaultSetSecret: 'security:vault:set-secret',
+  vaultGetSecret: 'security:vault:get-secret',
+  vaultDeleteSecret: 'security:vault:delete-secret'
 } as const;
 
 export type IpcChannel = (typeof ipcChannels)[keyof typeof ipcChannels];
@@ -32,12 +35,24 @@ export type SendFrameRequest = {
   channelValues: number[];
 };
 
+export type VaultSecretRequest = {
+  key: string;
+  value: string;
+};
+
+export type VaultSecretKeyRequest = {
+  key: string;
+};
+
 export type NativeIpcApi = {
   listDevices: () => Promise<HardwareDevice[]>;
   connectDevice: (request: ConnectDeviceRequest) => Promise<RuntimeStatus>;
   disconnectDevice: () => Promise<RuntimeStatus>;
   sendFrame: (request: SendFrameRequest) => Promise<void>;
   getRuntimeStatus: () => Promise<RuntimeStatus>;
+  vaultSetSecret: (request: VaultSecretRequest) => Promise<void>;
+  vaultGetSecret: (request: VaultSecretKeyRequest) => Promise<string | null>;
+  vaultDeleteSecret: (request: VaultSecretKeyRequest) => Promise<void>;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -56,5 +71,17 @@ export function assertSendFrameRequest(value: unknown): asserts value is SendFra
 
   if (!Array.isArray(value.channelValues) || value.channelValues.some((v) => !Number.isInteger(v) || v < 0 || v > 255)) {
     throw new Error('Invalid frame payload: channelValues must be an array of DMX bytes (0-255).');
+  }
+}
+
+export function assertVaultSecretRequest(value: unknown): asserts value is VaultSecretRequest {
+  if (!isRecord(value) || typeof value.key !== 'string' || value.key.length === 0 || typeof value.value !== 'string') {
+    throw new Error('Invalid vault payload.');
+  }
+}
+
+export function assertVaultSecretKeyRequest(value: unknown): asserts value is VaultSecretKeyRequest {
+  if (!isRecord(value) || typeof value.key !== 'string' || value.key.length === 0) {
+    throw new Error('Invalid vault key payload.');
   }
 }
