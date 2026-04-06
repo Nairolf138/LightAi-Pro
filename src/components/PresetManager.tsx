@@ -1,21 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { Save, Trash2, Share2 } from 'lucide-react';
-import { supabase, type Preset } from '../lib/supabase';
+import React, { useEffect, useState } from 'react';
+import { Save, Share2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { prepareConfigurationForStorage } from '../lib/effectConfiguration';
+import { supabase, type Preset } from '../lib/supabase';
 
 type PresetManagerProps = {
   userId: string;
-  currentConfiguration: Record<string, any>;
-  onLoadPreset: (configuration: Record<string, any>) => void;
+  currentEffectName: string;
+  currentConfiguration: Record<string, unknown>;
+  onLoadPreset: (configuration: Record<string, unknown>) => void;
 };
 
-export function PresetManager({ userId, currentConfiguration, onLoadPreset }: PresetManagerProps) {
+export function PresetManager({
+  userId,
+  currentEffectName,
+  currentConfiguration,
+  onLoadPreset
+}: PresetManagerProps) {
   const [presets, setPresets] = useState<Preset[]>([]);
   const [newPresetName, setNewPresetName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
-    fetchPresets();
+    void fetchPresets();
   }, [userId]);
 
   const fetchPresets = async () => {
@@ -39,13 +46,15 @@ export function PresetManager({ userId, currentConfiguration, onLoadPreset }: Pr
       return;
     }
 
-    const { error } = await supabase
-      .from('presets')
-      .insert([{
+    const payload = prepareConfigurationForStorage(currentEffectName, currentConfiguration, 'preset');
+
+    const { error } = await supabase.from('presets').insert([
+      {
         user_id: userId,
         name: newPresetName.trim(),
-        configuration: currentConfiguration
-      }]);
+        configuration: payload
+      }
+    ]);
 
     if (error) {
       toast.error('Failed to save preset');
@@ -55,14 +64,11 @@ export function PresetManager({ userId, currentConfiguration, onLoadPreset }: Pr
     toast.success('Preset saved successfully');
     setNewPresetName('');
     setIsCreating(false);
-    fetchPresets();
+    void fetchPresets();
   };
 
   const deletePreset = async (presetId: string) => {
-    const { error } = await supabase
-      .from('presets')
-      .delete()
-      .eq('id', presetId);
+    const { error } = await supabase.from('presets').delete().eq('id', presetId);
 
     if (error) {
       toast.error('Failed to delete preset');
@@ -70,7 +76,7 @@ export function PresetManager({ userId, currentConfiguration, onLoadPreset }: Pr
     }
 
     toast.success('Preset deleted');
-    fetchPresets();
+    void fetchPresets();
   };
 
   const sharePreset = async (preset: Preset) => {
