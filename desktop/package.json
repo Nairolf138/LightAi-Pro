@@ -6,7 +6,8 @@
   "main": "main.ts",
   "scripts": {
     "dev": "electron .",
-    "build": "echo \"Configure ta chaine de build desktop (electron-builder/tauri)\""
+    "build": "echo \"Configure ta chaine de build desktop (electron-builder/tauri)\"",
+    "sign:build": "node ./scripts/sign-build.mjs"
   },
   "devDependencies": {
     "electron": "^31.7.7"
