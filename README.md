@@ -30,6 +30,13 @@
 - [ ] Version mobile pour contrôle à distance
 - [ ] Personnalisation avancée des algorithmes IA
 
+
+## 🧱 Chaîne de release desktop
+
+La chaîne de release Windows/macOS (build reproductible, signature/notarization, auto-update stable/beta, compatibilité projet, rollback) est documentée ici :
+
+- `docs/architecture/release-chain.md`
+
 ## 🤝 Contribuer
 Les contributions sont les bienvenues ! Clonez le repo, proposez vos améliorations via des PRs et rejoignez la révolution de l’éclairage intelligent.
 

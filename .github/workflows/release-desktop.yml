@@ -1,0 +1,159 @@
+name: Release Desktop
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Tag à publier (ex: v1.4.0-beta.1)'
+        required: true
+      rollback_to:
+        description: 'Tag rollback optionnel (ex: v1.3.2)'
+        required: false
+
+env:
+  GH_RELEASE_OWNER: ${{ github.repository_owner }}
+  GH_RELEASE_REPO: ${{ github.event.repository.name }}
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.meta.outputs.release_tag }}
+      channel: ${{ steps.meta.outputs.channel }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            RELEASE_TAG="${{ github.event.inputs.release_tag }}"
+          else
+            RELEASE_TAG="${GITHUB_REF_NAME}"
+          fi
+
+          CHANNEL="stable"
+          if [[ "$RELEASE_TAG" == *"-beta"* || "$RELEASE_TAG" == *"-beta."* ]]; then
+            CHANNEL="beta"
+          fi
+
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release notes
+        run: |
+          LIGHTAI_RELEASE_TAG='${{ steps.meta.outputs.release_tag }}' node scripts/release/generate-release-notes.mjs > RELEASE_NOTES.md
+
+      - name: Upload release notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: RELEASE_NOTES.md
+
+      - name: Build rollback plan (optional)
+        if: ${{ github.event.inputs.rollback_to != '' }}
+        run: |
+          LIGHTAI_CURRENT_TAG='${{ steps.meta.outputs.release_tag }}' LIGHTAI_ROLLBACK_TAG='${{ github.event.inputs.rollback_to }}' node scripts/release/rollback-release.mjs > ROLLBACK_PLAN.json
+
+      - name: Upload rollback plan (optional)
+        if: ${{ github.event.inputs.rollback_to != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollback-plan
+          path: ROLLBACK_PLAN.json
+
+  build-desktop:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      LIGHTAI_RELEASE_CHANNEL: ${{ needs.prepare.outputs.channel }}
+      CSC_LINK: ${{ secrets.CSC_LINK }}
+      CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm ci --prefix desktop
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Validate project compatibility policy
+        run: |
+          LIGHTAI_APP_VERSION='${{ needs.prepare.outputs.release_tag }}' LIGHTAI_PROJECT_FORMAT_VERSION=2 node scripts/release/verify-project-compat.mjs
+
+      - name: Build signed desktop installers
+        run: |
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            npm run build:mac --prefix desktop
+          else
+            npm run build:win --prefix desktop
+          fi
+
+      - name: Publish updater metadata signature
+        run: npm run sign:build --prefix desktop
+
+      - name: Upload desktop artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.os }}
+          path: |
+            dist-desktop/**
+            desktop/signature/**
+
+  publish:
+    needs: [prepare, build-desktop]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download release notes
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-macos-latest
+          path: artifacts/macos
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-windows-latest
+          path: artifacts/windows
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.release_tag }}
+          prerelease: ${{ needs.prepare.outputs.channel == 'beta' }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            artifacts/macos/**
+            artifacts/windows/**

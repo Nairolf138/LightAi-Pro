@@ -1,9 +1,40 @@
 import { app, BrowserWindow, dialog, session } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import { registerIpcHandlers } from './ipc/handlers';
 import { HardwareRuntime } from './native/hardwareRuntime';
 import { verifyRuntimeIntegrity } from './security/integrity';
+import { checkProjectCompatibility, configureAutoUpdate } from './release/updatePolicy';
 
 const runtime = new HardwareRuntime();
+
+
+function maybeCheckProjectCompatibility(): void {
+  const projectFormatVersion = Number(process.env.LIGHTAI_PROJECT_FORMAT_VERSION ?? 1);
+  const compatibility = checkProjectCompatibility(projectFormatVersion);
+
+  if (!compatibility.ok) {
+    throw new Error(compatibility.reason ?? 'Project compatibility check failed.');
+  }
+}
+
+function setupSecureAutoUpdates(): void {
+  const channel = configureAutoUpdate();
+
+  autoUpdater.on('error', (error) => {
+    console.error('[auto-update] error', error);
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    console.log(`[auto-update] update available on channel ${channel}: ${info.version}`);
+    void autoUpdater.downloadUpdate();
+  });
+
+  autoUpdater.on('update-not-available', () => {
+    console.log(`[auto-update] no update available on channel ${channel}`);
+  });
+
+  void autoUpdater.checkForUpdates();
+}
 
 function installDesktopSecurityHeaders(): void {
   const cspDirectives = [
@@ -63,9 +94,14 @@ app.whenReady().then(async () => {
     return;
   }
 
+  maybeCheckProjectCompatibility();
   installDesktopSecurityHeaders();
   registerIpcHandlers(runtime);
   createWindow();
+
+  if (app.isPackaged) {
+    setupSecureAutoUpdates();
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

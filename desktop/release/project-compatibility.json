@@ -1,0 +1,22 @@
+{
+  "1": {
+    "projectVersion": {
+      "min": 1,
+      "max": 2
+    },
+    "migration": {
+      "strategy": "live-backward-compatible",
+      "requiresBackup": true
+    }
+  },
+  "2": {
+    "projectVersion": {
+      "min": 2,
+      "max": 3
+    },
+    "migration": {
+      "strategy": "guided-upgrade",
+      "requiresBackup": true
+    }
+  }
+}
