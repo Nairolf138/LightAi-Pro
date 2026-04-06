@@ -10,9 +10,9 @@ export function HeroSection() {
   return (
     <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
       <div className="perspective-text mb-12">
-        <h1 className="text-7xl font-bold mb-6 gradient-text">The Future of Lighting Control</h1>
+        <h1 className="text-7xl font-bold mb-6 gradient-text">LightAI Pro — Contrôle lumière en évolution</h1>
         <p className="text-2xl text-gray-300 mb-8">
-          Revolutionary AI-powered lighting control system with immersive AR/VR integration
+          Plateforme de contrôle lumière orientée timeline, protocoles live et collaboration cloud (fonctionnalités AR/VR expérimentales).
         </p>
       </div>
       <div className="flex justify-center gap-4 mb-12">

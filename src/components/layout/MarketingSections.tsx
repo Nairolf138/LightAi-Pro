@@ -15,48 +15,48 @@ import {
 const features = [
   {
     icon: <Brain className="w-8 h-8 text-yellow-400" />,
-    title: 'AI-Powered Programming',
-    description: 'Neural network-driven automation and pattern recognition for intelligent show programming'
+    title: "Assistance à la programmation",
+    description: "Outils d'aide pour accélérer la préparation de shows (règles et automatisations configurables)."
   },
   {
     icon: <Glasses className="w-8 h-8 text-yellow-400" />,
-    title: 'AR/VR Integration',
-    description: 'Immersive programming environment with holographic controls and real-time visualization'
+    title: "Prévisualisation immersive (expérimentale)",
+    description: "Prévisualisation scène en cours de maturation; support partiel selon l'environnement."
   },
   {
     icon: <Wand2 className="w-8 h-8 text-yellow-400" />,
-    title: 'Smart Effects Engine',
-    description: 'Dynamic effects generation with real-time music synchronization and beat detection'
+    title: "Moteur d'effets synchronisés",
+    description: 'Effets dynamiques avec synchronisation audio disponible selon la source et la latence.'
   },
   {
     icon: <Network className="w-8 h-8 text-yellow-400" />,
-    title: 'Distributed Processing',
-    description: 'Multi-node computation for complex real-time calculations and rendering'
+    title: 'Exécution distribuée (beta)',
+    description: 'Traitement multi-processus disponible sur certains scénarios runtime.'
   },
   {
     icon: <Cpu className="w-8 h-8 text-yellow-400" />,
-    title: 'GPU Acceleration',
-    description: 'Hardware-accelerated processing for smooth control of massive fixture arrays'
+    title: 'Accélération matérielle (selon machine)',
+    description: 'Utilisation des capacités matérielles locales quand disponibles.'
   },
   {
     icon: <Globe className="w-8 h-8 text-yellow-400" />,
-    title: 'Cloud Integration',
-    description: 'Real-time collaboration and show synchronization across multiple venues'
+    title: 'Collaboration cloud',
+    description: 'Comptes cloud et collaboration disponibles via Supabase, avec limites documentées.'
   },
   {
     icon: <Lock className="w-8 h-8 text-yellow-400" />,
-    title: 'Enterprise Security',
-    description: 'Military-grade encryption and access control for mission-critical shows'
+    title: "Sécurité opérationnelle",
+    description: "Contrôles d'accès applicatifs, journalisation et bonnes pratiques de durcissement."
   },
   {
     icon: <Sparkles className="w-8 h-8 text-yellow-400" />,
-    title: 'Automated Effects',
-    description: 'AI-generated lighting sequences based on music analysis and crowd response'
+    title: 'Effets assistés',
+    description: "Génération semi-automatique d'effets basée sur les paramètres et l'analyse audio."
   },
   {
     icon: <Zap className="w-8 h-8 text-yellow-400" />,
-    title: 'Real-time Processing',
-    description: 'Ultra-low latency control system with predictive algorithms'
+    title: 'Traitement temps réel',
+    description: 'Pilotage temps réel optimisé; performances dépendantes du matériel et des protocoles.'
   }
 ];
 
@@ -65,7 +65,7 @@ export function MarketingSections() {
     <>
       <section id="features" className="py-20 px-4 clip-path-slant bg-gray-900">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-center mb-16 gradient-text">Revolutionary Features</h2>
+          <h2 className="text-5xl font-bold text-center mb-16 gradient-text">Fonctionnalités produit</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature) => (
               <div
@@ -84,7 +84,7 @@ export function MarketingSections() {
       <section id="technology" className="py-20 px-4 bg-black relative overflow-hidden">
         <div className="absolute inset-0 matrix-bg opacity-10" />
         <div className="max-w-7xl mx-auto relative z-10">
-          <h2 className="text-5xl font-bold text-center mb-16 gradient-text">Cutting-Edge Technology</h2>
+          <h2 className="text-5xl font-bold text-center mb-16 gradient-text">Technologie et état d'avancement</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="relative group">
               <img
@@ -94,23 +94,23 @@ export function MarketingSections() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
                 <div className="text-white">
-                  <h3 className="text-2xl font-bold mb-2">Neural Processing Unit</h3>
-                  <p>Advanced AI algorithms process lighting data in real-time</p>
+                  <h3 className="text-2xl font-bold mb-2">Pipeline de calcul lumière</h3>
+                  <p>Le moteur calcule les états lumière en continu selon la configuration active.</p>
                 </div>
               </div>
             </div>
             <div className="space-y-6">
               <div className="card-3d border-l-4 border-yellow-400 pl-6 hover:bg-gray-800/50 p-4 rounded-r-xl transition-colors">
-                <h3 className="text-2xl font-semibold mb-2">Quantum-Inspired Processing</h3>
-                <p className="text-gray-400">Next-generation algorithms for complex lighting calculations</p>
+                <h3 className="text-2xl font-semibold mb-2">Calcul temps réel optimisé</h3>
+                <p className="text-gray-400">Algorithmes de calcul orientés stabilité et reproductibilité des scènes.</p>
               </div>
               <div className="card-3d border-l-4 border-yellow-400 pl-6 hover:bg-gray-800/50 p-4 rounded-r-xl transition-colors">
-                <h3 className="text-2xl font-semibold mb-2">Distributed Computing</h3>
-                <p className="text-gray-400">Multi-node processing for unlimited fixture control</p>
+                <h3 className="text-2xl font-semibold mb-2">Traitement distribué (ciblé)</h3>
+                <p className="text-gray-400">Traitement multi-nœud prévu pour cas d'usage avancés (non généralisé).</p>
               </div>
               <div className="card-3d border-l-4 border-yellow-400 pl-6 hover:bg-gray-800/50 p-4 rounded-r-xl transition-colors">
-                <h3 className="text-2xl font-semibold mb-2">Neural Networks</h3>
-                <p className="text-gray-400">Deep learning models for intelligent show programming</p>
+                <h3 className="text-2xl font-semibold mb-2">Automatisation pilotée par règles</h3>
+                <p className="text-gray-400">Automatisations disponibles sur workflows ciblés; modèles avancés en exploration.</p>
               </div>
             </div>
           </div>
@@ -119,7 +119,7 @@ export function MarketingSections() {
 
       <section id="demo" className="py-20 px-4 bg-gray-900/50">
         <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-5xl font-bold mb-16 gradient-text">Experience the Future</h2>
+          <h2 className="text-5xl font-bold mb-16 gradient-text">Voir une démo du produit</h2>
           <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800/50 backdrop-blur-lg group">
             <img
               src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=80"
@@ -148,8 +148,9 @@ export function MarketingSections() {
             <a href="#technology" className="text-gray-400 hover:text-yellow-400 transition-colors">Technology</a>
             <a href="#demo" className="text-gray-400 hover:text-yellow-400 transition-colors">Demo</a>
             <a href="https://github.com" className="text-gray-400 hover:text-yellow-400 transition-colors">GitHub</a>
-            <a href="#" className="text-gray-400 hover:text-yellow-400 transition-colors">Documentation</a>
-            <a href="#" className="text-gray-400 hover:text-yellow-400 transition-colors">API</a>
+            <a href="/docs/user/quickstart.md" className="text-gray-400 hover:text-yellow-400 transition-colors">Documentation</a>
+            <a href="/docs/legal/cgu.md" className="text-gray-400 hover:text-yellow-400 transition-colors">CGU</a>
+            <a href="/docs/legal/privacy.md" className="text-gray-400 hover:text-yellow-400 transition-colors">Confidentialité</a>
           </div>
         </div>
       </footer>

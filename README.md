@@ -48,5 +48,12 @@ LightAI-Pro est une application de conduite lumière (web + desktop) orientée s
 - Timecode/synchronisation distribuée avancée.
 - Visualisation scène plus avancée.
 
+## Cadre légal et conformité
+- Licence exploitable: `LICENSE`
+- Conditions Générales d'Utilisation cloud: `docs/legal/cgu.md`
+- Politique de confidentialité cloud: `docs/legal/privacy.md`
+- Limitations techniques connues (publiques): `docs/product/limitations.md`
+- Changelog de maturité (alpha/beta/stable): `docs/product/maturity-changelog.md`
+
 ## Licence
-Propriétaire — Tous droits réservés.
+Source-available propriétaire — voir `LICENSE` pour les droits et restrictions applicables.
