@@ -20,10 +20,17 @@ export type HardwareDevice = {
   online: boolean;
 };
 
+export type RuntimeMetrics = {
+  protocolQueueDepth: number;
+  protocolQueueHighWatermark: number;
+  protocolDroppedFrames: number;
+};
+
 export type RuntimeStatus = {
   ready: boolean;
   connectedDeviceId: string | null;
   protocol: DeviceProtocol | null;
+  metrics: RuntimeMetrics;
 };
 
 export type ConnectDeviceRequest = {

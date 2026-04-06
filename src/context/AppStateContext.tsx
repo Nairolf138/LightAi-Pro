@@ -1,4 +1,6 @@
 import { createContext, useContext, type ReactNode } from 'react';
+import type { RuntimeStatus } from '../../desktop/ipc/contracts';
+import type { ObservabilitySnapshot } from '../lib/observability';
 import type { Profile } from '../lib/supabase';
 
 interface PlaybackState {
@@ -21,6 +23,14 @@ interface VirtualStageState {
   nextPreset: () => void;
 }
 
+interface DiagnosticsState {
+  isOpen: boolean;
+  toggle: () => void;
+  snapshot: ObservabilitySnapshot;
+  runtimeStatus: RuntimeStatus;
+  exportIncidentReport: (scope: 'private' | 'public') => void;
+}
+
 interface AppStateValue {
   profile: Profile | null;
   isAuthModalOpen: boolean;
@@ -30,6 +40,7 @@ interface AppStateValue {
   toggleEffectPanel: () => void;
   playback: PlaybackState;
   virtualStage: VirtualStageState;
+  diagnostics: DiagnosticsState;
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null);
