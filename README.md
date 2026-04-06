@@ -42,3 +42,19 @@ Pour toute question ou collaboration : [florian.ribes@live.fr](mailto:florian.ri
 ---
 _Illuminez vos spectacles avec **LightAI-Pro**, l’IA au service de la lumière !_ ✨
 
+
+## 🤝 Collaboration temps réel (Supabase)
+
+Le backend peut être étendu avec la migration SQL suivante :
+
+- `supabase/migrations/20260406100000_collaboration_backend.sql`
+
+Cette migration ajoute :
+
+1. Modèles `projects`, `team_members`, `roles`, `shared_shows` (avec versionning d'état).
+2. RLS orienté rôles (`owner`, `operator`, `viewer`).
+3. Synchronisation non destructive via `sync_project_live_state` / `sync_shared_show_state` (optimistic update + contrôle de version).
+4. Journal d'actions via `action_journal` + RPC `log_cue_action`.
+5. Lock live via `live_control_locks` + RPC `acquire_live_control_lock`, `heartbeat_live_control_lock`, `release_live_control_lock`.
+
+Un helper TypeScript est fourni dans `src/lib/liveCollaboration.ts` pour consommer ces RPC côté client.
