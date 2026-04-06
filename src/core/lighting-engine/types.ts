@@ -1,3 +1,5 @@
+import type { ShowOutputConfig } from '../protocols/types';
+
 export type ChannelValue = number;
 
 export interface Fixture {
@@ -55,6 +57,7 @@ export interface ShowState {
   activeCue: ActiveCueState | null;
   currentSceneId: string | null;
   tick: number;
+  output: ShowOutputConfig;
 }
 
 export const DEFAULT_UNIVERSE_SIZE = 512;

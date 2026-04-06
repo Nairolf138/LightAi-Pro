@@ -1,4 +1,5 @@
 import { ShowState } from './types';
+import { defaultShowOutputConfig } from '../protocols/types';
 
 interface PersistedShowState {
   version: 1;
@@ -27,5 +28,9 @@ export const serializeShowState = (state: ShowState): string =>
 export const deserializeShowState = (json: string): ShowState => {
   const payload = JSON.parse(json) as unknown;
   assertValidPayload(payload);
-  return payload.state;
+
+  return {
+    ...payload.state,
+    output: payload.state.output ?? defaultShowOutputConfig,
+  };
 };

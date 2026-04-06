@@ -5,6 +5,7 @@ import {
   Universe,
   type ChannelValue,
 } from './types';
+import { defaultShowOutputConfig } from '../protocols/types';
 
 const clampChannelValue = (value: number): ChannelValue =>
   Math.max(0, Math.min(255, Math.round(value)));
@@ -64,6 +65,7 @@ export const createShowState = (): ShowState => ({
   activeCue: null,
   currentSceneId: null,
   tick: 0,
+  output: defaultShowOutputConfig,
 });
 
 export const setChannel = (
