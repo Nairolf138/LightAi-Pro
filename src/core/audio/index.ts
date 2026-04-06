@@ -1,4 +1,4 @@
-export { AudioAnalyzer } from '../core/audio';
+export { AudioAnalyzer } from './audioAnalyzer';
 export type {
   AudioCalibration,
   AudioInputMode,
@@ -7,4 +7,4 @@ export type {
   EnergyBands,
   EnergyBandsEventHandler,
   TempoEstimateEventHandler
-} from '../core/audio';
+} from './types';

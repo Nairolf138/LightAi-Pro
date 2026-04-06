@@ -1,4 +1,4 @@
-import { AudioAnalyzer } from './audioAnalyzer';
+import { AudioAnalyzer, type EnergyBands } from '../core/audio';
 
 export interface Effect {
   name: string;
@@ -7,6 +7,34 @@ export interface Effect {
   render: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, analyzer?: AudioAnalyzer) => void;
 }
 
+
+
+export interface AudioEventSubscriptions {
+  onBeat?: (intensity: number) => void;
+  onEnergyBands?: (bands: EnergyBands) => void;
+  onTempoEstimate?: (tempoEstimate: number | null) => void;
+}
+
+export const subscribeEffectToAudio = (
+  analyzer: AudioAnalyzer,
+  subscriptions: AudioEventSubscriptions
+) => {
+  const cleanups: Array<() => void> = [];
+
+  if (subscriptions.onBeat) {
+    cleanups.push(analyzer.onBeat(subscriptions.onBeat));
+  }
+
+  if (subscriptions.onEnergyBands) {
+    cleanups.push(analyzer.onEnergyBands(subscriptions.onEnergyBands));
+  }
+
+  if (subscriptions.onTempoEstimate) {
+    cleanups.push(analyzer.onTempoEstimate(subscriptions.onTempoEstimate));
+  }
+
+  return () => cleanups.forEach((cleanup) => cleanup());
+};
 const createGradient = (ctx: CanvasRenderingContext2D, colors: string[]) => {
   const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
   colors.forEach((color, i) => {
