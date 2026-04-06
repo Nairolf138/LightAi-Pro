@@ -1,0 +1,14 @@
+{
+  "name": "lightai-pro-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "main.ts",
+  "scripts": {
+    "dev": "electron .",
+    "build": "echo \"Configure ta chaine de build desktop (electron-builder/tauri)\""
+  },
+  "devDependencies": {
+    "electron": "^31.7.7"
+  }
+}

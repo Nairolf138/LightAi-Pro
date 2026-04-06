@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "desktop:dev": "npm run dev --prefix desktop",
+    "desktop:build": "npm run build --prefix desktop"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
