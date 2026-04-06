@@ -5,3 +5,5 @@ export * from './scheduler';
 export * from './serialization';
 
 export * from '../protocols';
+
+export * from '../fixtures';
