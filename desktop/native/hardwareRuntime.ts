@@ -6,11 +6,22 @@ const mockDevices: HardwareDevice[] = [
   { id: 'osc-bridge-01', name: 'OSC Bridge', protocol: 'osc', online: true }
 ];
 
+const MAX_PROTOCOL_QUEUE_DEPTH = 120;
+
 export class HardwareRuntime {
+  private protocolQueueDepth = 0;
+  private protocolQueueHighWatermark = 0;
+  private protocolDroppedFrames = 0;
+
   private status: RuntimeStatus = {
     ready: true,
     connectedDeviceId: null,
-    protocol: null
+    protocol: null,
+    metrics: {
+      protocolQueueDepth: 0,
+      protocolQueueHighWatermark: 0,
+      protocolDroppedFrames: 0
+    }
   };
 
   listDevices(): HardwareDevice[] {
@@ -26,7 +37,8 @@ export class HardwareRuntime {
     this.status = {
       ready: true,
       connectedDeviceId: device.id,
-      protocol: device.protocol
+      protocol: device.protocol,
+      metrics: this.readMetrics()
     };
 
     return this.status;
@@ -36,7 +48,8 @@ export class HardwareRuntime {
     this.status = {
       ...this.status,
       connectedDeviceId: null,
-      protocol: null
+      protocol: null,
+      metrics: this.readMetrics()
     };
     return this.status;
   }
@@ -48,9 +61,45 @@ export class HardwareRuntime {
 
     // NOTE: Protocol adapters (DMX/Art-Net/OSC) must remain in this native layer.
     void request;
+
+    if (this.protocolQueueDepth >= MAX_PROTOCOL_QUEUE_DEPTH) {
+      this.protocolDroppedFrames += 1;
+      this.status = {
+        ...this.status,
+        metrics: this.readMetrics()
+      };
+      return;
+    }
+
+    this.protocolQueueDepth += 1;
+    this.protocolQueueHighWatermark = Math.max(this.protocolQueueHighWatermark, this.protocolQueueDepth);
+
+    setTimeout(() => {
+      this.protocolQueueDepth = Math.max(0, this.protocolQueueDepth - 1);
+      this.status = {
+        ...this.status,
+        metrics: this.readMetrics()
+      };
+    }, 8);
+
+    this.status = {
+      ...this.status,
+      metrics: this.readMetrics()
+    };
   }
 
   getStatus(): RuntimeStatus {
-    return this.status;
+    return {
+      ...this.status,
+      metrics: this.readMetrics()
+    };
+  }
+
+  private readMetrics() {
+    return {
+      protocolQueueDepth: this.protocolQueueDepth,
+      protocolQueueHighWatermark: this.protocolQueueHighWatermark,
+      protocolDroppedFrames: this.protocolDroppedFrames
+    };
   }
 }

@@ -1,9 +1,9 @@
-import { Github, Lightbulb } from 'lucide-react';
+import { Activity, Github, Lightbulb } from 'lucide-react';
 import { UserMenu } from '../UserMenu';
 import { useAppState } from '../../context/AppStateContext';
 
 export function Navbar() {
-  const { profile, openAuthModal } = useAppState();
+  const { profile, openAuthModal, diagnostics } = useAppState();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-lg">
@@ -20,6 +20,15 @@ export function Navbar() {
             <Github className="mr-2 w-4 h-4" />
             GitHub
           </a>
+
+          <button
+            onClick={diagnostics.toggle}
+            className="hover:text-yellow-400 transition-colors flex items-center"
+          >
+            <Activity className="mr-2 w-4 h-4" />
+            Diagnostics
+          </button>
+
           {profile ? (
             <UserMenu profile={profile} />
           ) : (

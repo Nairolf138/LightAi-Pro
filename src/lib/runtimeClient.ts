@@ -11,7 +11,12 @@ import type {
 const fallbackStatus: RuntimeStatus = {
   ready: false,
   connectedDeviceId: null,
-  protocol: null
+  protocol: null,
+  metrics: {
+    protocolQueueDepth: 0,
+    protocolQueueHighWatermark: 0,
+    protocolDroppedFrames: 0
+  }
 };
 
 const unavailableError =

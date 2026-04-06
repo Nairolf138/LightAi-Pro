@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { observability } from '../lib/observability';
 
 interface UsePlaybackStateOptions {
   effectsCount: number;
@@ -20,7 +21,25 @@ export function usePlaybackState({
   useEffect(() => {
     if (!isPlaying) return;
 
+    let expectedAt = performance.now() + 100;
+
     const interval = window.setInterval(() => {
+      const now = performance.now();
+      const latency = now - expectedAt;
+      const droppedFrame = latency > 120;
+
+      observability.trackFrame(latency, droppedFrame);
+
+      if (droppedFrame) {
+        observability.warn('playback', 'Frame scheduling drift exceeded threshold', {
+          expectedAt,
+          actualAt: now,
+          latencyMs: Number(latency.toFixed(2))
+        });
+      }
+
+      expectedAt += 100;
+
       setCurrentTime((prevTime) => {
         const newTime = (prevTime + 1) % 100;
 
@@ -28,6 +47,7 @@ export function usePlaybackState({
           setCurrentEffect((prevEffect) => {
             const nextEffect = (prevEffect + 1) % effectsCount;
             onEffectAdvanced?.(nextEffect);
+            observability.info('playback', 'Effect advanced', { from: prevEffect, to: nextEffect });
             return nextEffect;
           });
         }
@@ -44,6 +64,9 @@ export function usePlaybackState({
   const togglePlay = () => {
     setIsPlaying((prev) => {
       const nextIsPlaying = !prev;
+      observability.info('playback', nextIsPlaying ? 'Playback started' : 'Playback paused', {
+        currentEffect,
+      });
       if (nextIsPlaying) {
         onPlayStart?.(currentEffect);
       }

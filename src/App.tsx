@@ -1,7 +1,8 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { AuthModal } from './components/AuthModal';
 import { EffectSidePanel } from './components/layout/EffectSidePanel';
+import { DiagnosticsPanel } from './components/layout/DiagnosticsPanel';
 import { HeroSection } from './components/layout/HeroSection';
 import { MarketingSections } from './components/layout/MarketingSections';
 import { Navbar } from './components/layout/Navbar';
@@ -16,12 +17,55 @@ import {
   rollbackConfiguration
 } from './lib/effectConfiguration';
 import { effects } from './lib/effects';
+import { buildIncidentReport, downloadIncidentReport, observability } from './lib/observability';
+import { runtimeClient } from './lib/runtimeClient';
 import { supabase } from './lib/supabase';
 
 function App() {
   const [showVirtualStage, setShowVirtualStage] = useState(false);
   const [showEffectPanel, setShowEffectPanel] = useState(false);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [runtimeStatus, setRuntimeStatus] = useState(() => ({
+    ready: false,
+    connectedDeviceId: null,
+    protocol: null,
+    metrics: {
+      protocolQueueDepth: 0,
+      protocolQueueHighWatermark: 0,
+      protocolDroppedFrames: 0
+    }
+  }));
   const profileState = useSupabaseProfile();
+
+
+  useEffect(() => {
+    observability.setShowId('main-show');
+    observability.info('app', 'Application booted');
+  }, []);
+
+  useEffect(() => {
+    const pollStatus = () => {
+      runtimeClient
+        .getRuntimeStatus()
+        .then((status) => {
+          setRuntimeStatus(status);
+          observability.setProtocolMetrics({
+            queueDepth: status.metrics.protocolQueueDepth,
+            queueHighWatermark: status.metrics.protocolQueueHighWatermark,
+            droppedFrames: status.metrics.protocolDroppedFrames
+          });
+        })
+        .catch((error) => {
+          observability.warn('runtime', 'Runtime status polling failed', {
+            reason: error instanceof Error ? error.message : String(error)
+          });
+        });
+    };
+
+    pollStatus();
+    const id = window.setInterval(pollStatus, 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const traceAuditEvent = useCallback(
     async (
@@ -39,7 +83,7 @@ function App() {
         ...payload
       };
 
-      console.info('[PresetAudit]', technicalAudit);
+      observability.info('preset-audit', action, technicalAudit);
 
       if (!profileState.profile) {
         return;
@@ -54,7 +98,9 @@ function App() {
       ]);
 
       if (error) {
-        console.error('Error tracing audit event:', error);
+        observability.error('preset-audit', 'Error tracing audit event', {
+          reason: error instanceof Error ? error.message : String(error)
+        });
       }
     },
     [profileState.profile]
@@ -73,7 +119,9 @@ function App() {
       ]);
 
       if (error) {
-        console.error('Error logging effect usage:', error);
+        observability.error('preset-audit', 'Error logging effect usage', {
+          reason: error instanceof Error ? error.message : String(error)
+        });
       }
     },
     [profileState.profile]
@@ -144,6 +192,35 @@ function App() {
     void applyPersistedConfiguration(configuration, 'history');
   }, [applyPersistedConfiguration]);
 
+
+  const exportIncidentReport = useCallback(
+    (scope: 'private' | 'public') => {
+      const report = buildIncidentReport({
+        exportScope: scope,
+        runtimeStatus,
+        appConfig: {
+          virtualStageEnabled: showVirtualStage,
+          effectPanelOpen: showEffectPanel,
+          activeEffectIndex: playbackState.currentEffect,
+          volume: playbackState.volume,
+          muted: playbackState.isMuted,
+          profile: profileState.profile
+            ? {
+                user_id: profileState.profile.id,
+                email: profileState.profile.email,
+                role: profileState.profile.role
+              }
+            : null
+        }
+      });
+
+      const suffix = scope === 'public' ? 'public' : 'private';
+      downloadIncidentReport(`lightai-incident-${suffix}-${new Date().toISOString()}.json`, report);
+      observability.info('diagnostics', 'Incident report exported', { scope });
+    },
+    [playbackState.currentEffect, playbackState.isMuted, playbackState.volume, profileState.profile, runtimeStatus, showEffectPanel, showVirtualStage]
+  );
+
   const appState = useMemo(
     () => ({
       profile: profileState.profile,
@@ -161,9 +238,16 @@ function App() {
         nextPreset: () => {
           // managed in dedicated virtual-stage hook
         }
+      },
+      diagnostics: {
+        isOpen: showDiagnostics,
+        toggle: () => setShowDiagnostics((prev) => !prev),
+        snapshot: observability.snapshot(),
+        runtimeStatus,
+        exportIncidentReport
       }
     }),
-    [playbackState, profileState, showEffectPanel, showVirtualStage]
+    [exportIncidentReport, playbackState, profileState, runtimeStatus, showDiagnostics, showEffectPanel, showVirtualStage]
   );
 
   return (
@@ -192,6 +276,7 @@ function App() {
           </div>
 
           <Navbar />
+          <DiagnosticsPanel />
           <HeroSection />
           <PlayerBar />
         </header>
