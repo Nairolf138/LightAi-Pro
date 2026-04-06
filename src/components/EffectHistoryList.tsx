@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, ArrowUpRight } from 'lucide-react';
-import { supabase, type EffectHistory } from '../lib/supabase';
+import React, { useEffect, useState } from 'react';
+import { ArrowUpRight, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { supabase, type EffectHistory } from '../lib/supabase';
 
 type EffectHistoryListProps = {
   userId: string;
-  onLoadConfiguration: (configuration: Record<string, any>) => void;
+  onLoadConfiguration: (configuration: Record<string, unknown>) => void;
 };
 
 export function EffectHistoryList({ userId, onLoadConfiguration }: EffectHistoryListProps) {
   const [history, setHistory] = useState<EffectHistory[]>([]);
 
   useEffect(() => {
-    fetchHistory();
+    void fetchHistory();
   }, [userId]);
 
   const fetchHistory = async () => {

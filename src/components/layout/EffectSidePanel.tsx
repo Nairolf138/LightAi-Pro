@@ -16,6 +16,8 @@ export function EffectSidePanel({ onLoadPreset, onLoadConfiguration }: EffectSid
     return null;
   }
 
+  const currentEffect = effects[playback.currentEffect];
+
   return (
     <>
       {showEffectPanel && (
@@ -23,7 +25,8 @@ export function EffectSidePanel({ onLoadPreset, onLoadConfiguration }: EffectSid
           <div className="space-y-6">
             <PresetManager
               userId={profile.id}
-              currentConfiguration={effects[playback.currentEffect].configuration}
+              currentEffectName={currentEffect.name}
+              currentConfiguration={currentEffect.configuration}
               onLoadPreset={onLoadPreset}
             />
             <EffectHistoryList userId={profile.id} onLoadConfiguration={onLoadConfiguration} />
