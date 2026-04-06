@@ -34,7 +34,7 @@
 Les contributions sont les bienvenues ! Clonez le repo, proposez vos améliorations via des PRs et rejoignez la révolution de l’éclairage intelligent.
 
 ## 📜 Licence
-MIT License - Faites-en bon usage !
+Proprietaire - Tous droits révervés !
 
 ## 📩 Contact
 Pour toute question ou collaboration : [florian.ribes@live.fr](mailto:florian.ribes@live.fr)
