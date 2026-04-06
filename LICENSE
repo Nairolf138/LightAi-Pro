@@ -1,0 +1,41 @@
+LightAI Pro Source-Available License v1.0
+Copyright (c) 2026 LightAI Pro contributors
+All rights reserved.
+
+1) Definitions
+"Software" means the LightAI Pro source code, build artifacts, documentation, and related files in this repository.
+"Licensor" means the copyright holder(s) of the Software.
+"You" means an individual or legal entity exercising rights under this License.
+
+2) License Grant
+Subject to full compliance with this License, Licensor grants You a limited, worldwide, non-exclusive, non-transferable, revocable license to:
+- use the Software internally for evaluation, development, testing, and operation of Your own productions;
+- modify the Software for Your internal use;
+- copy the Software as reasonably necessary for the above purposes.
+
+3) Distribution and Commercial Restrictions
+Without prior written authorization from Licensor, You may not:
+- sublicense, sell, rent, lease, or otherwise commercially distribute the Software (modified or unmodified);
+- offer the Software as a managed service, hosted product, SaaS, or white-label solution;
+- remove or alter copyright, trademark, or proprietary notices.
+
+4) Third-Party Components
+The Software may include third-party components under separate licenses. Those components remain governed by their original terms. In case of conflict for a third-party component, its own license prevails for that component only.
+
+5) Feedback
+If You provide feedback, suggestions, or bug reports, You grant Licensor a perpetual, worldwide, royalty-free license to use them without restriction.
+
+6) Disclaimer of Warranties
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE", WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AVAILABILITY, OR ACCURACY.
+
+7) Limitation of Liability
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, LICENSOR SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR EXEMPLARY DAMAGES, OR ANY LOSS OF DATA, PROFITS, REVENUE, OR BUSINESS INTERRUPTION, ARISING FROM OR RELATED TO THE SOFTWARE.
+
+8) Termination
+This License terminates automatically if You breach any term. Upon termination, You must stop using the Software and delete all copies under Your control.
+
+9) Governing Law
+This License is governed by the laws of the jurisdiction of the Licensor's principal place of business, excluding conflict-of-law rules.
+
+10) Contact
+For commercial licensing, redistribution rights, or legal notices, contact the maintainers listed in this repository.
