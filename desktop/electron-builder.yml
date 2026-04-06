@@ -1,0 +1,60 @@
+appId: com.lightai.pro
+productName: LightAI Pro
+directories:
+  output: ../dist-desktop
+  buildResources: ./build
+files:
+  - ../dist/**
+  - ./main.ts
+  - ./preload.ts
+  - ./ipc/**
+  - ./native/**
+  - ./security/**
+extraMetadata:
+  main: main.ts
+artifactName: "${productName}-${version}-${os}-${arch}-${channel}.${ext}"
+buildDependenciesFromSource: false
+asar: true
+npmRebuild: false
+publish:
+  - provider: github
+    owner: ${env.GH_RELEASE_OWNER}
+    repo: ${env.GH_RELEASE_REPO}
+
+generateUpdatesFilesForAllChannels: true
+detectUpdateChannel: true
+
+mac:
+  category: public.app-category.music
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: ./security/entitlements.mac.plist
+  entitlementsInherit: ./security/entitlements.mac.plist
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+
+dmg:
+  sign: true
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  signingHashAlgorithms:
+    - sha256
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+  createDesktopShortcut: always
+  artifactName: "${productName}-Setup-${version}-${channel}.${ext}"
