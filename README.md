@@ -1,6 +1,6 @@
 # LightAI-Pro
 
-LightAI-Pro est une application de conduite lumière (web + desktop) orientée show timeline, pilotage protocolaire et opérations live.
+LightAI-Pro est l'application du futur de conduite lumière de scènes (web + desktop) orientée show timeline, pilotage protocolaire et opérations live. Le tout propulsé par intelligence artificielle.
 
 ## État réel du projet (avril 2026)
 
