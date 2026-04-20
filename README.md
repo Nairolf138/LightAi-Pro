@@ -48,6 +48,48 @@ LightAI-Pro est l'application du futur de conduite lumière de scènes (web + de
 - Timecode/synchronisation distribuée avancée.
 - Visualisation scène plus avancée.
 
+### Copilote IA
+
+#### Capacités cibles
+- Lecture de patch (analyse structurelle, cohérence d'adressage, détection d'écarts).
+- Compréhension de la librairie projecteurs (modes, canaux, attributs, limites de fixtures).
+- Suggestions de palettes et de groupes (par contexte de show, familles de projecteurs et intent).
+- Génération de cues à partir d'un brief opérateur (texte libre ou template de scène).
+
+#### Entrées / sorties standard
+- **Lecture de patch**
+  - Entrées: patch JSON/CSV, librairie fixtures, contraintes de scène (zones, univers, limites DMX).
+  - Sorties: rapport structuré (`issues[]`, `warnings[]`, `propositions[]`) + résumé lisible opérateur.
+  - Niveau de détail: granularité par univers/adresse + synthèse globale.
+  - Contraintes temps réel: réponse < 2 s en validation interactive, < 10 s en audit complet.
+- **Compréhension librairie projecteurs**
+  - Entrées: définitions fixtures (modes/canaux), mapping attributs, métadonnées constructeur.
+  - Sorties: modèle normalisé des capacités (`capabilities`, `channelMap`, `constraints`) exploitable par moteur cues.
+  - Niveau de détail: attribut par canal + règles de compatibilité inter-fixtures.
+  - Contraintes temps réel: extraction incrémentale < 1 s sur modifications unitaires.
+- **Suggestions palettes / groupes**
+  - Entrées: patch validé, contexte artistique (couleurs, ambiance, tempo), historique show.
+  - Sorties: propositions classées (`confidence`, justification, impact) pour palettes et groupes prêts à appliquer.
+  - Niveau de détail: proposition explicable fixture-par-fixture + vue macro (couverture scène).
+  - Contraintes temps réel: proposition initiale < 1.5 s, raffinement progressif sans bloquer la conduite live.
+- **Génération de cues depuis brief**
+  - Entrées: brief texte, contraintes techniques (temps, sécurité, blackout rules), état courant du show.
+  - Sorties: cues candidates versionnées (timing, fade, paramètres) + diff avant/après.
+  - Niveau de détail: à la fois éditable cue par cue et exportable en bloc.
+  - Contraintes temps réel: premier jet < 3 s, ajustements interactifs < 1 s.
+
+#### Garde-fous produit
+- Aucune action destructive automatique (pas d'écrasement silencieux de cues/patch/palettes).
+- Validation humaine obligatoire avant tout export, push runtime ou écriture persistante.
+- Traçabilité complète: provenance des suggestions, version modèle/règles, logs de validation.
+- Mode dégradé sûr: en cas d'incertitude élevée, retourner une recommandation non bloquante plutôt qu'une action.
+
+#### KPI de suivi
+- Taux de cues acceptées (% de cues IA conservées après revue opérateur).
+- Temps gagné en préparation (delta moyen vs workflow manuel, par type de show).
+- Taux d'erreurs d'adressage/patch avant vs après assistance Copilote IA.
+- Taux de retouche post-génération (mesure complémentaire de qualité des propositions).
+
 ## Cadre légal et conformité
 - Licence exploitable: `LICENSE`
 - Conditions Générales d'Utilisation cloud: `docs/legal/cgu.md`
