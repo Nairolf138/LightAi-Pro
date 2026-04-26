@@ -30,6 +30,12 @@ LightAI-Pro est l'application du futur de conduite lumière de scènes (web + de
 - Contribution et conventions: `docs/dev/contributing.md`
 - Architecture runtime: `docs/architecture/runtime.md`
 - Chaîne de release: `docs/architecture/release-chain.md`
+- Modèle canonique show (JSON/YAML + mapping consoles): `docs/architecture/show-canonical-model.md`
+
+
+### Exemples de show
+- Petit show canonique: `docs/examples/shows/small-show.yaml` (`.json`)
+- Show moyen canonique: `docs/examples/shows/medium-show.yaml` (`.json`)
 
 ## Roadmap (mise à jour)
 
