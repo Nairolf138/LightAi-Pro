@@ -7,22 +7,49 @@ export type FixtureChannelType =
   | 'intensity'
   | 'color'
   | 'position'
+  | 'beam'
+  | 'gobo'
   | 'effect'
   | 'strobe'
   | 'control'
   | 'custom';
 
+export type FixtureChannelResolution = 8 | 16;
+
+export interface FixtureChannelRange {
+  min: number;
+  max: number;
+}
+
 export interface FixtureChannelDefinition {
   key: string;
   name: string;
   type: FixtureChannelType;
+  attribute?: string;
+  aliases?: ReadonlyArray<string>;
+  resolutionBits?: FixtureChannelResolution;
+  fineKey?: string;
+  range?: FixtureChannelRange;
   defaultValue?: FixtureChannelValue;
+}
+
+export interface FixtureMacroDefinition {
+  id: string;
+  name: string;
+  channelKeys: ReadonlyArray<string>;
+}
+
+export interface FixtureModeLimitations {
+  unsupportedAttributes?: ReadonlyArray<string>;
+  notes?: ReadonlyArray<string>;
 }
 
 export interface FixtureProfileMode {
   id: string;
   name: string;
   channels: ReadonlyArray<FixtureChannelDefinition>;
+  macros?: ReadonlyArray<FixtureMacroDefinition>;
+  limitations?: FixtureModeLimitations;
 }
 
 export interface FixtureProfile {
