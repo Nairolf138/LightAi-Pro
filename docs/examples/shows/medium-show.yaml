@@ -1,0 +1,142 @@
+schemaVersion: 1.0.0
+metadata:
+  showId: medium-tour-2026
+  title: Medium Tour Show
+  bpm: 126
+dmx:
+  universes:
+    - { id: 1, name: Front Truss }
+    - { id: 2, name: Back Truss }
+    - { id: 3, name: Floor Package }
+  fixtureModes:
+    - id: wash-20ch
+      name: Wash 20ch
+      dmxFootprint: 20
+      attributes:
+        - { attributeId: dimmer, channels: [1], coarseChannel: 1 }
+        - { attributeId: color.cmy, channels: [2, 3, 4], coarseChannel: 2 }
+        - { attributeId: pan, channels: [5, 6], coarseChannel: 5, fineChannel: 6 }
+        - { attributeId: tilt, channels: [7, 8], coarseChannel: 7, fineChannel: 8 }
+        - { attributeId: zoom, channels: [9], coarseChannel: 9 }
+    - id: beam-18ch
+      name: Beam 18ch
+      dmxFootprint: 18
+      attributes:
+        - { attributeId: dimmer, channels: [1], coarseChannel: 1 }
+        - { attributeId: color.wheel, channels: [5], coarseChannel: 5 }
+        - { attributeId: pan, channels: [2, 3], coarseChannel: 2, fineChannel: 3 }
+        - { attributeId: tilt, channels: [4, 6], coarseChannel: 4, fineChannel: 6 }
+        - { attributeId: gobo.index, channels: [7], coarseChannel: 7 }
+  fixtures:
+    - { id: w1, name: Wash 1, fixtureType: moving_wash, modeId: wash-20ch, universe: 1, address: 1, tags: [front] }
+    - { id: w2, name: Wash 2, fixtureType: moving_wash, modeId: wash-20ch, universe: 1, address: 21, tags: [front] }
+    - { id: w3, name: Wash 3, fixtureType: moving_wash, modeId: wash-20ch, universe: 2, address: 1, tags: [back] }
+    - { id: w4, name: Wash 4, fixtureType: moving_wash, modeId: wash-20ch, universe: 2, address: 21, tags: [back] }
+    - { id: b1, name: Beam 1, fixtureType: moving_beam, modeId: beam-18ch, universe: 3, address: 1, tags: [floor] }
+    - { id: b2, name: Beam 2, fixtureType: moving_beam, modeId: beam-18ch, universe: 3, address: 19, tags: [floor] }
+attributesCatalog:
+  - { id: dimmer, family: dimmer, label: Intensité }
+  - { id: color.cmy, family: color, label: CMY }
+  - { id: color.wheel, family: color, label: Roue couleur }
+  - { id: pan, family: position, label: Pan }
+  - { id: tilt, family: position, label: Tilt }
+  - { id: gobo.index, family: gobo, label: Gobo }
+  - { id: zoom, family: beam, label: Zoom }
+groups:
+  - { id: g-wash-all, name: Wash All, fixtureIds: [w1, w2, w3, w4] }
+  - { id: g-beam-floor, name: Floor Beams, fixtureIds: [b1, b2] }
+  - { id: g-front, name: Front Line, fixtureIds: [w1, w2] }
+palettes:
+  - id: pal-color-warm
+    name: Warm Wash
+    kind: color
+    values:
+      - groupId: g-wash-all
+        attributes:
+          - { attributeId: color.cmy, value: "C10 M35 Y80", scale: percent }
+  - id: pal-color-cold
+    name: Cold Beam
+    kind: color
+    values:
+      - groupId: g-beam-floor
+        attributes:
+          - { attributeId: color.wheel, value: 7, scale: colorWheelSlot }
+  - id: pal-pos-audience
+    name: Audience Sweep
+    kind: position
+    values:
+      - groupId: g-beam-floor
+        attributes:
+          - { attributeId: pan, value: 35, scale: percent }
+          - { attributeId: tilt, value: 62, scale: percent }
+  - id: pal-beam-tight
+    name: Tight Beam
+    kind: beam
+    values:
+      - groupId: g-beam-floor
+        attributes:
+          - { attributeId: zoom, value: 15, scale: percent }
+cues:
+  - id: cue-1
+    number: "1"
+    name: House Open
+    timing: { inMs: 2500, outMs: 1500 }
+    parts:
+      - id: p-main
+        targets:
+          - groupId: g-front
+            paletteRefs: [pal-color-warm]
+            values:
+              - { attributeId: dimmer, value: 60, scale: percent }
+  - id: cue-2
+    number: "2"
+    name: Verse Look
+    timing: { inMs: 1800, outMs: 1200, delayMs: 250 }
+    parts:
+      - id: p-wash
+        targets:
+          - groupId: g-wash-all
+            paletteRefs: [pal-color-warm]
+            values:
+              - { attributeId: dimmer, value: 75, scale: percent }
+      - id: p-beam
+        targets:
+          - groupId: g-beam-floor
+            paletteRefs: [pal-color-cold, pal-pos-audience, pal-beam-tight]
+            values:
+              - { attributeId: gobo.index, value: 2, scale: goboSlot }
+              - { attributeId: dimmer, value: 90, scale: percent }
+  - id: cue-3
+    number: "3"
+    name: Chorus Hit
+    timing: { inMs: 350, outMs: 450, followMs: 8000 }
+    parts:
+      - id: p-all
+        targets:
+          - groupId: g-wash-all
+            values:
+              - { attributeId: dimmer, value: 100, scale: percent }
+          - groupId: g-beam-floor
+            values:
+              - { attributeId: dimmer, value: 100, scale: percent }
+              - { attributeId: gobo.index, value: 5, scale: goboSlot }
+consoleMappings:
+  - console: grandma3
+    naming: { groupPrefix: Group, palettePrefix: Preset, cueListFormat: "Sequence %s" }
+    limitations: { maxUniverses: 250, maxFixturesPerGroup: 999 }
+    granularity: { timing: 0.1s, values: mixed }
+    translations:
+      - { canonical: "palettes.kind=beam", consoleTerm: "Beam Preset" }
+      - { canonical: "cues.parts", consoleTerm: "Cue Parts" }
+  - console: chamsys
+    naming: { groupPrefix: Group, palettePrefix: Palette, cueListFormat: "Cue Stack %s" }
+    limitations: { maxUniverses: 64, unsupportedFeatures: ["per-step 16bit timing"] }
+    granularity: { timing: 0.1s, values: 8bit }
+    translations:
+      - { canonical: "palettes.kind=position", consoleTerm: "Position Palette" }
+  - console: eos
+    naming: { groupPrefix: Group, palettePrefix: Palette, cueListFormat: "List %s" }
+    limitations: { maxUniverses: 63999 }
+    granularity: { timing: frames, values: 16bit }
+    translations:
+      - { canonical: "groups", consoleTerm: "Groups" }

@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "1.0.0",
+  "metadata": {
+    "showId": "small-demo-001",
+    "title": "Petit Show Demo",
+    "bpm": 120
+  },
+  "dmx": {
+    "universes": [
+      { "id": 1, "name": "Main" }
+    ],
+    "fixtureModes": [
+      {
+        "id": "spot-16ch",
+        "name": "Spot 16ch",
+        "dmxFootprint": 16,
+        "attributes": [
+          { "attributeId": "dimmer", "channels": [1], "coarseChannel": 1 },
+          { "attributeId": "color.wheel", "channels": [6], "coarseChannel": 6 },
+          { "attributeId": "pan", "channels": [2, 3], "coarseChannel": 2, "fineChannel": 3 },
+          { "attributeId": "tilt", "channels": [4, 5], "coarseChannel": 4, "fineChannel": 5 },
+          { "attributeId": "gobo.index", "channels": [7], "coarseChannel": 7 }
+        ]
+      }
+    ],
+    "fixtures": [
+      { "id": "s1", "name": "Spot 1", "fixtureType": "moving_spot", "modeId": "spot-16ch", "universe": 1, "address": 1 },
+      { "id": "s2", "name": "Spot 2", "fixtureType": "moving_spot", "modeId": "spot-16ch", "universe": 1, "address": 17 }
+    ]
+  },
+  "attributesCatalog": [
+    { "id": "dimmer", "family": "dimmer", "label": "Intensité" },
+    { "id": "color.wheel", "family": "color", "label": "Roue couleur" },
+    { "id": "pan", "family": "position", "label": "Pan" },
+    { "id": "tilt", "family": "position", "label": "Tilt" },
+    { "id": "gobo.index", "family": "gobo", "label": "Gobo" }
+  ],
+  "groups": [
+    { "id": "all-spots", "name": "All Spots", "fixtureIds": ["s1", "s2"] }
+  ],
+  "palettes": [
+    {
+      "id": "pal-color-blue",
+      "name": "Color Blue",
+      "kind": "color",
+      "values": [
+        {
+          "groupId": "all-spots",
+          "attributes": [
+            { "attributeId": "color.wheel", "value": 3, "scale": "colorWheelSlot" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pal-pos-center",
+      "name": "Position Center",
+      "kind": "position",
+      "values": [
+        {
+          "groupId": "all-spots",
+          "attributes": [
+            { "attributeId": "pan", "value": 50, "scale": "percent" },
+            { "attributeId": "tilt", "value": 50, "scale": "percent" }
+          ]
+        }
+      ]
+    }
+  ],
+  "cues": [
+    {
+      "id": "cue-1",
+      "number": "1",
+      "name": "Intro Blue",
+      "timing": { "inMs": 1000, "outMs": 500 },
+      "parts": [
+        {
+          "id": "part-main",
+          "targets": [
+            {
+              "groupId": "all-spots",
+              "paletteRefs": ["pal-color-blue", "pal-pos-center"],
+              "values": [
+                { "attributeId": "dimmer", "value": 70, "scale": "percent" },
+                { "attributeId": "gobo.index", "value": 1, "scale": "goboSlot" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cue-2",
+      "number": "2",
+      "name": "Hit White",
+      "timing": { "inMs": 250, "outMs": 250, "followMs": 4000 },
+      "parts": [
+        {
+          "id": "part-main",
+          "targets": [
+            {
+              "groupId": "all-spots",
+              "values": [
+                { "attributeId": "dimmer", "value": 100, "scale": "percent" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "consoleMappings": [
+    {
+      "console": "grandma3",
+      "naming": { "groupPrefix": "Group", "palettePrefix": "Preset", "cueListFormat": "Main %s" },
+      "limitations": { "maxUniverses": 250 },
+      "granularity": { "timing": "0.1s", "values": "mixed" },
+      "translations": [
+        { "canonical": "palettes.kind=position", "consoleTerm": "Position Preset" }
+      ]
+    },
+    {
+      "console": "eos",
+      "naming": { "groupPrefix": "Group", "palettePrefix": "Palette", "cueListFormat": "List %s" },
+      "limitations": { "maxUniverses": 63999, "unsupportedFeatures": ["gobo shake macro"] },
+      "granularity": { "timing": "frames", "values": "16bit" },
+      "translations": [
+        { "canonical": "palettes.kind=color", "consoleTerm": "Color Palette" }
+      ]
+    }
+  ]
+}
