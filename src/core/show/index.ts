@@ -5,3 +5,5 @@ export * from './persistence';
 export * from './protocol-link';
 
 export * from './canonical';
+
+export * from './preset-seeding';
