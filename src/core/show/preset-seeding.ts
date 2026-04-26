@@ -30,6 +30,39 @@ export interface SeededPaletteSet {
   palettes: PaletteProposal[];
 }
 
+export interface PreShowChecklistItem {
+  id: string;
+  label: string;
+  category: 'patch' | 'intensity' | 'position' | 'color';
+  required: boolean;
+}
+
+export interface PreShowTestSequence {
+  id: string;
+  label: string;
+  paletteId?: string;
+  notes: string;
+}
+
+export interface BaseCleanTemplate {
+  groups: GroupProposal[];
+  palettes: PaletteProposal[];
+  testSequences: PreShowTestSequence[];
+  validationChecklist: PreShowChecklistItem[];
+}
+
+export interface CanonicalPreShowCuePlan {
+  cues: CanonicalShowModel['cues'];
+  entryCueId: string | null;
+}
+
+export interface ShowIterationExport {
+  versionId: string;
+  createdAtIso: string;
+  fileName: string;
+  payload: string;
+}
+
 export interface NamingSuggestion {
   readableName: string;
   artisticVariants: string[];
@@ -55,6 +88,14 @@ const defaultRules: InitialGroupingRule[] = [
   { axis: 'fixtureType', enabled: true },
   { axis: 'scenicRole', enabled: true },
   { axis: 'zone', enabled: true },
+];
+
+const PRE_SHOW_CHECKLIST: PreShowChecklistItem[] = [
+  { id: 'patch-universes', label: 'Patch OK (univers, adresses, profils)', category: 'patch', required: true },
+  { id: 'patch-dmx', label: 'Sortie DMX active / sans collision', category: 'patch', required: true },
+  { id: 'intensity-master', label: 'Masters et intensités vérifiés', category: 'intensity', required: true },
+  { id: 'position-home', label: 'Positions Home / focus testés', category: 'position', required: true },
+  { id: 'color-neutral', label: 'Balance couleurs neutres validée', category: 'color', required: true },
 ];
 
 const titleCase = (value: string): string =>
@@ -291,5 +332,107 @@ export const finalizeValidatedDraft = (draft: ValidatableSeedDraft): SeededPalet
   return {
     groups: draft.groups,
     palettes: draft.palettes,
+  };
+};
+
+export const createBaseCleanTemplate = (
+  show: Pick<CanonicalShowModel, 'dmx'>,
+  registry: FixtureProfileRegistry,
+  rules?: ReadonlyArray<InitialGroupingRule>,
+): BaseCleanTemplate => {
+  const seeded = seedGroupsAndPalettes(show, registry, rules);
+  const minimalPalettes = seeded.palettes.filter((palette) =>
+    ['intensity', 'color', 'position', 'focus'].includes(palette.kind),
+  );
+
+  const pickPaletteByKind = (kind: CanonicalPalette['kind']) => minimalPalettes.find((palette) => palette.kind === kind);
+
+  return {
+    groups: seeded.groups,
+    palettes: minimalPalettes,
+    testSequences: [
+      {
+        id: 'seq-focus-check',
+        label: 'Focus check',
+        paletteId: pickPaletteByKind('position')?.id,
+        notes: 'Vérifier ouverture, pointage et symétrie des positions.',
+      },
+      {
+        id: 'seq-balance-check',
+        label: 'Balance check',
+        paletteId: pickPaletteByKind('intensity')?.id,
+        notes: 'Contrôler homogénéité des intensités par zone et type.',
+      },
+      {
+        id: 'seq-base-look',
+        label: 'Base look check',
+        paletteId: pickPaletteByKind('color')?.id,
+        notes: 'Valider look blanc chaud neutre prêt pour répétition.',
+      },
+    ],
+    validationChecklist: PRE_SHOW_CHECKLIST,
+  };
+};
+
+export const generatePreShowCueStack = (
+  template: BaseCleanTemplate,
+): CanonicalPreShowCuePlan => {
+  const buildCue = (id: string, number: string, name: string, paletteKind: CanonicalPalette['kind']): CanonicalShowModel['cues'][number] => {
+    const palette = template.palettes.find((entry) => entry.kind === paletteKind);
+    return {
+      id,
+      number,
+      name,
+      timing: { inMs: 800, outMs: 500 },
+      parts: [
+        {
+          id: `${id}-part-a`,
+          label: 'Base state',
+          targets: [
+            {
+              values: [],
+              paletteRefs: palette ? [palette.id] : [],
+            },
+          ],
+        },
+      ],
+    };
+  };
+
+  const cues = [
+    buildCue('pre-show-focus', '0.1', 'Pre-show · Focus', 'position'),
+    buildCue('pre-show-balance', '0.2', 'Pre-show · Balance', 'intensity'),
+    buildCue('pre-show-base-look', '0.3', 'Pre-show · Base look', 'color'),
+  ];
+
+  return {
+    cues,
+    entryCueId: cues[0]?.id ?? null,
+  };
+};
+
+export const createIterationExport = (
+  payload: unknown,
+  options?: { baseName?: string; versionTag?: string; now?: Date },
+): ShowIterationExport => {
+  const now = options?.now ?? new Date();
+  const stamp = now.toISOString().replace(/[:.]/gu, '-');
+  const versionTag = options?.versionTag?.trim() || 'v1';
+  const baseName = options?.baseName?.trim() || 'show-template';
+  const versionId = `${versionTag}-${stamp}`;
+
+  return {
+    versionId,
+    createdAtIso: now.toISOString(),
+    fileName: `${baseName}.${versionId}.json`,
+    payload: JSON.stringify(
+      {
+        versionId,
+        createdAtIso: now.toISOString(),
+        data: payload,
+      },
+      null,
+      2,
+    ),
   };
 };
