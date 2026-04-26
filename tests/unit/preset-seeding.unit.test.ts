@@ -1,8 +1,11 @@
 import { FixtureProfileRegistry, FIXTURE_PROFILE_FORMAT_VERSION } from '../../src/core/fixtures';
 import {
   applyNamingAssistant,
+  createBaseCleanTemplate,
+  createIterationExport,
   createValidatableDraft,
   finalizeValidatedDraft,
+  generatePreShowCueStack,
   seedGroupsAndPalettes,
   type NamingAssistant,
 } from '../../src/core/show/preset-seeding';
@@ -116,4 +119,70 @@ test('finalizeValidatedDraft impose une validation manuelle complète', () => {
   draft.groups[0].status = 'approved';
   const finalized = finalizeValidatedDraft(draft);
   assert.equal(finalized.groups.length, 1);
+});
+
+test('createBaseCleanTemplate prépare groupes, palettes minimales, séquences et checklist', () => {
+  const registry = createRegistry();
+  const template = createBaseCleanTemplate(
+    {
+      dmx: {
+        fixtures: [
+          {
+            id: 'fx-1',
+            name: 'Front Wash Left',
+            fixtureType: 'hybrid-wash',
+            modeId: 'std',
+            universe: 1,
+            address: 1,
+          },
+        ],
+      },
+    },
+    registry,
+  );
+
+  assert.ok(template.groups.length > 0);
+  assert.ok(template.palettes.some((palette) => palette.kind === 'intensity'));
+  assert.ok(template.testSequences.some((sequence) => sequence.id === 'seq-focus-check'));
+  assert.ok(template.validationChecklist.some((item) => item.category === 'patch' && item.required));
+});
+
+test('generatePreShowCueStack génère automatiquement la stack de cues de pré-show', () => {
+  const registry = createRegistry();
+  const template = createBaseCleanTemplate(
+    {
+      dmx: {
+        fixtures: [
+          {
+            id: 'fx-1',
+            name: 'Front Wash Left',
+            fixtureType: 'hybrid-wash',
+            modeId: 'std',
+            universe: 1,
+            address: 1,
+          },
+        ],
+      },
+    },
+    registry,
+  );
+
+  const stack = generatePreShowCueStack(template);
+  assert.equal(stack.cues.length, 3);
+  assert.equal(stack.entryCueId, 'pre-show-focus');
+  assert.deepEqual(
+    stack.cues.map((cue) => cue.name),
+    ['Pre-show · Focus', 'Pre-show · Balance', 'Pre-show · Base look'],
+  );
+});
+
+test("createIterationExport ajoute un versioning exploitable pour itérations rapides", () => {
+  const exported = createIterationExport(
+    { cues: ['pre-show-focus'] },
+    { baseName: 'pre-show', versionTag: 'v2', now: new Date('2026-04-26T12:00:00.000Z') },
+  );
+
+  assert.equal(exported.versionId, 'v2-2026-04-26T12-00-00-000Z');
+  assert.equal(exported.fileName, 'pre-show.v2-2026-04-26T12-00-00-000Z.json');
+  assert.ok(exported.payload.includes('"cues"'));
 });
