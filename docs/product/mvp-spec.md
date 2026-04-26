@@ -122,6 +122,64 @@ Ne pas engager ces sujets dans le cycle MVP (sauf décision formelle de changeme
 
 ---
 
+## 6) Scénarios de test opératoires (à exécuter systématiquement)
+
+Le MVP doit être validé sur **4 contextes d’exploitation** minimum afin d’éviter une validation biaisée par un seul environnement :
+
+1. **Petit club**
+   - Configuration compacte, nombre réduit de fixtures, opérateur unique.
+   - Vérifier la simplicité de patch et la vitesse de préparation.
+
+2. **Plateau TV**
+   - Exigence de précision des cues et changements fréquents.
+   - Vérifier la fiabilité des transitions, la lisibilité des diffs et la non-régression au dernier moment.
+
+3. **Tournée**
+   - Variabilité quotidienne du parc matériel et des consoles cibles.
+   - Vérifier la robustesse des imports/exports, la compatibilité console et la capacité de rollback rapide.
+
+4. **Théâtre**
+   - Conduite millimétrée et forte exigence de reproductibilité.
+   - Vérifier la stabilité temporelle, la conservation des intentions artistiques et l’acceptation opérateur.
+
+---
+
+## 7) Métriques de pilotage MVP (qualité + adoption)
+
+Les itérations MVP doivent être évaluées avec les indicateurs suivants :
+
+- **Exactitude patch** : taux d’erreurs de patch détectées après génération/édition assistée (objectif : diminution continue release après release).
+- **Compatibilité console** : taux d’exports acceptés sans correction manuelle sur les consoles cibles du périmètre MVP.
+- **Acceptation opérateur** : part des propositions (patch/cues) validées par l’opérateur sans retouche majeure.
+- **Temps gagné** : delta moyen de temps de préparation/conduite par rapport au workflow manuel de référence, mesuré par scénario (club, TV, tournée, théâtre).
+
+Ces métriques sont suivies par build, puis consolidées par version pour décision Go/No-Go.
+
+---
+
+## 8) Garde-fous UX obligatoires avant validation finale
+
+Pour toute action impactant le show (patch, cues, export), l’interface doit fournir :
+
+1. **Simulation preview**  
+   - Prévisualisation non destructive du résultat attendu avant application.
+
+2. **Diff avant/après**
+   - Visualisation explicite des changements (ajouts, suppressions, modifications) à granularité exploitable par un opérateur.
+
+3. **Rollback en un clic**
+   - Retour immédiat à l’état précédent validé, sans manipulation manuelle complexe.
+
+---
+
+## 9) Validation humaine explicite avant export console
+
+- **Aucun export final console ne doit être exécuté sans validation humaine explicite.**
+- La validation doit être matérialisée par une action utilisateur claire (ex. bouton de confirmation dédié) et tracée (horodatage + identité opérateur/profil courant).
+- Toute tentative d’export sans cette validation doit être bloquée avec message explicite.
+
+---
+
 ## Critères de validation (Go / No-Go)
 
 Le MVP est validé pour lancement dev technique lourd seulement si :
@@ -130,7 +188,11 @@ Le MVP est validé pour lancement dev technique lourd seulement si :
 2. Les OS cibles et exclusions sont actés.
 3. Les 6 cas d’usage obligatoires sont signés.
 4. Les seuils de performance minimum sont approuvés.
-5. La liste hors scope est confirmée pour éviter le scope creep.
+5. Les scénarios de test (club, TV, tournée, théâtre) ont été exécutés et documentés.
+6. Les métriques (exactitude patch, compatibilité console, acceptation opérateur, temps gagné) atteignent les seuils cibles définis.
+7. Les garde-fous UX (simulation preview, diff, rollback) sont implémentés et validés.
+8. La validation humaine explicite avant export console est vérifiée et traçable.
+9. La liste hors scope est confirmée pour éviter le scope creep.
 
 ### Sign-off requis
 - Product Owner : ☐
