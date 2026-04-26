@@ -9,3 +9,4 @@ export * from './canonical';
 export * from './preset-seeding';
 
 export * from './brief-planner';
+export * from './console-conversion';
