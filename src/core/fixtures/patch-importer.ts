@@ -1,5 +1,6 @@
 import type { CanonicalFixture, CanonicalFixtureMode, CanonicalShowModel } from '../show/canonical';
 import { validatePatchFixtures } from './patch-editor';
+import { getChannelAttributeId, getFixtureCapabilities } from './capabilities';
 import type {
   FixtureChannelType,
   FixtureProfile,
@@ -420,13 +421,19 @@ const channelTypeToFamily = (channelType: FixtureChannelType): CanonicalShowMode
 };
 
 const toCanonicalFixtureMode = (profile: FixtureProfile, mode: FixtureProfileMode): CanonicalFixtureMode => ({
-  id: mode.id,
+  id: `${profile.profileId}:${mode.id}`,
   name: `${profile.manufacturer} ${profile.model} ${mode.name}`,
   dmxFootprint: mode.channels.length,
+  limitations: {
+    unsupportedAttributes: mode.limitations?.unsupportedAttributes ? [...mode.limitations.unsupportedAttributes] : [],
+    notes: mode.limitations?.notes ? [...mode.limitations.notes] : [],
+  },
   attributes: mode.channels.map((channel, index) => ({
-    attributeId: `${channel.type}.${channel.key}`,
+    attributeId: getChannelAttributeId(channel),
     channels: [index + 1],
     coarseChannel: index + 1,
+    resolutionBits: channel.resolutionBits ?? 8,
+    range: channel.range,
     defaultValue: channel.defaultValue,
   })),
 });
@@ -435,7 +442,7 @@ const toCanonicalFixture = (fixture: PatchFixture): CanonicalFixture => ({
   id: fixture.id,
   name: fixture.name,
   fixtureType: fixture.profileId,
-  modeId: fixture.modeId,
+  modeId: `${fixture.profileId}:${fixture.modeId}`,
   universe: fixture.universe,
   address: fixture.address,
 });
@@ -456,17 +463,18 @@ export const buildShowGraphFromPatch = (
       continue;
     }
 
-    if (!fixtureModes.has(mode.id)) {
-      fixtureModes.set(mode.id, toCanonicalFixtureMode(profile, mode));
+    const fixtureModeId = `${profile.profileId}:${mode.id}`;
+    if (!fixtureModes.has(fixtureModeId)) {
+      fixtureModes.set(fixtureModeId, toCanonicalFixtureMode(profile, mode));
     }
 
-    mode.channels.forEach((channel) => {
-      const attributeId = `${channel.type}.${channel.key}`;
-      if (!attributesCatalog.has(attributeId)) {
-        attributesCatalog.set(attributeId, {
-          id: attributeId,
-          family: channelTypeToFamily(channel.type),
-          label: channel.name,
+    const capabilities = getFixtureCapabilities(profile, mode);
+    Object.values(capabilities.attributes).forEach((attribute) => {
+      if (!attributesCatalog.has(attribute.id)) {
+        attributesCatalog.set(attribute.id, {
+          id: attribute.id,
+          family: channelTypeToFamily(mode.channels[attribute.channels[0] - 1]?.type ?? 'custom'),
+          label: attribute.label,
         });
       }
     });

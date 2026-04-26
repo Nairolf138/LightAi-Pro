@@ -10,11 +10,17 @@ export interface CanonicalFixtureMode {
   id: string;
   name: string;
   dmxFootprint: number;
+  limitations?: {
+    unsupportedAttributes?: string[];
+    notes?: string[];
+  };
   attributes: Array<{
     attributeId: string;
     channels: number[];
     coarseChannel: number;
     fineChannel?: number;
+    resolutionBits?: 8 | 16;
+    range?: { min: number; max: number };
     defaultValue?: number;
   }>;
 }
