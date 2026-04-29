@@ -11,7 +11,8 @@
     "desktop:dev": "npm run dev --prefix desktop",
     "desktop:build": "npm run build --prefix desktop",
     "test": "node scripts/run-tests.mjs",
-    "test:ci": "node scripts/run-tests.mjs"
+    "test:ci": "node scripts/run-tests.mjs",
+    "bench:phase2-exit": "node scripts/run-phase2-exit-bench.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
