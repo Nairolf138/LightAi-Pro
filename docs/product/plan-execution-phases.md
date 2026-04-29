@@ -54,11 +54,11 @@
 | **P2-C03** Intégrité patch fixtures | `EPIC-P2-C03` | `PATCH-211`, `QA-232` | Rapport suite tests patch | `QA-P2-C03` | `YYYY-MM-DD • Go/No-Go` | TODO |
 | **P2-C04** Exécution cue list | `EPIC-P2-C04` | `CUE-221`, `QA-233` | QA report scénarios critiques | `QA-P2-C04` | `YYYY-MM-DD • Go/No-Go` | TODO |
 | **P2-C05** Résilience déconnexion | `EPIC-P2-C05` | `PROTO-204`, `ENG-234`, `QA-233` | Campagne chaos + logs temps de reprise | `CHAOS-P2-C05` | `YYYY-MM-DD • Go/No-Go` | TODO |
-| **P3-C01** Packaging desktop signé | `EPIC-P3-C01` | `PKG-301`, `PKG-302` | Artifacts CI + checksums | `CI-P3-C01` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P3-C01** Packaging desktop signé | `EPIC-P3-C01` | `PKG-301`, `PKG-302` | Artifacts CI signés + checksums publiés + changelog publié | `CI-P3-C01` | `YYYY-MM-DD • Go/No-Go` | TODO |
 | **P3-C02** Endurance runtime | `EPIC-P3-C02` | `QA-311`, `ENG-312` | Rapport soak test + logs mémoire | `SOAK-P3-C02` | `YYYY-MM-DD • Go/No-Go` | TODO |
 | **P3-C03** Taux de régression | `EPIC-P3-C03` | `QA-313`, `QA-314` | Rapport QA final release | `QA-P3-C03` | `YYYY-MM-DD • Go/No-Go` | TODO |
 | **P3-C04** Qualité pilote terrain | `EPIC-P3-C04` | `FIELD-321`, `FIELD-322` | Journal incidents hebdo | `FIELD-P3-C04` | `YYYY-MM-DD • Go/No-Go` | TODO |
-| **P3-C05** Prêt déploiement élargi | `EPIC-P3-C05` | `PKG-303`, `FIELD-323`, `QA-314` | Checklist release signée | `REL-P3-C05` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P3-C05** Prêt déploiement élargi | `EPIC-P3-C05` | `PKG-303`, `FIELD-323`, `QA-314` | Checklist release candidate signée (incl. rollback testé) | `REL-P3-C05` | `YYYY-MM-DD • Go/No-Go` | TODO |
 
 ### Statut vivant par critère
 - Valeurs recommandées : `TODO`, `IN_PROGRESS`, `AT_RISK`, `BLOCKED`, `DONE`.
@@ -74,6 +74,10 @@
 - **Go Phase 2** si **100%** des critères P1-C01 à P1-C05 sont validés.
 - **Go Phase 3** si P2-C01..P2-C05 validés + aucun bug Sev1 ouvert sur protocoles/cue engine.
 - **Go Release élargie** si P3-C01..P3-C05 validés et comité release approuve.
+
+### Contraintes additionnelles P3-C01 / P3-C05
+- **P3-C01** n'est validable que si les artifacts minimaux sont présents: checksums + changelog/release notes.
+- **P3-C05** n'est validable que si la checklist RC de `docs/admin/deployment.md` est entièrement signée, avec preuve de rollback testé.
 
 ---
 

@@ -28,6 +28,11 @@
 
 > Statuts autorisés : `TODO`, `IN_PROGRESS`, `AT_RISK`, `BLOCKED`, `DONE`.
 
+### Règles de preuve renforcées (alignement P3-C01 / P3-C05)
+- **P3-C01**: la colonne Preuves doit inclure **artifacts signés + checksums + changelog/release notes publiés**.
+- **P3-C05**: la colonne Preuves doit référencer la **checklist RC signée** et la **preuve de rollback testé**.
+- Référence checklist: `docs/admin/deployment.md` (section *Checklist release candidate*).
+
 ## 2) Risques ouverts
 
 | ID risque | Description | Impact | Mitigation | Owner | Statut |
