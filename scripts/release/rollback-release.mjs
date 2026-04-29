@@ -7,6 +7,8 @@ if (!rollbackTag) {
 }
 
 const currentTag = process.env.LIGHTAI_CURRENT_TAG ?? 'unknown';
+const format = process.env.LIGHTAI_ROLLBACK_FORMAT ?? 'json';
+const validate = process.env.LIGHTAI_ROLLBACK_VALIDATE === 'true';
 
 const tags = execSync('git tag --list', { encoding: 'utf8' })
   .split('\n')
@@ -18,16 +20,28 @@ if (!skipTagCheck && !tags.includes(rollbackTag)) {
   throw new Error(`Rollback tag ${rollbackTag} does not exist in repository tags.`);
 }
 
+const steps = [
+  'Freeze update channels: stable + beta.',
+  `Promote signed artifacts from ${rollbackTag} as latest stable.`,
+  'Publish rollback communication in release notes and status page.',
+  'Validate updater manifests and checksums after promotion.',
+  'Collect crash telemetry and open postmortem ticket.'
+];
+
 const rollbackPlan = {
   generatedAt: new Date().toISOString(),
   currentTag,
   rollbackTag,
-  steps: [
-    'Freeze update channel stable and beta.',
-    `Promote signed artifacts from ${rollbackTag} as latest stable.`,
-    'Publish incident note in release notes and status page.',
-    'Collect crash telemetry and open postmortem ticket.'
-  ]
+  validated: validate,
+  steps
 };
 
-process.stdout.write(`${JSON.stringify(rollbackPlan, null, 2)}\n`);
+if (format === 'markdown') {
+  process.stdout.write(`- Current release: ${currentTag}\n`);
+  process.stdout.write(`- Rollback target: ${rollbackTag}\n`);
+  process.stdout.write(`- Validation: ${validate ? 'tested in CI' : 'planned only'}\n`);
+  process.stdout.write('\n');
+  steps.forEach((step, index) => process.stdout.write(`${index + 1}. ${step}\n`));
+} else {
+  process.stdout.write(`${JSON.stringify(rollbackPlan, null, 2)}\n`);
+}

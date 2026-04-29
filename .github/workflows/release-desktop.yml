@@ -23,6 +23,7 @@ jobs:
     outputs:
       release_tag: ${{ steps.meta.outputs.release_tag }}
       channel: ${{ steps.meta.outputs.channel }}
+      rollback_tag: ${{ steps.meta.outputs.rollback_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,30 +45,41 @@ jobs:
             CHANNEL="beta"
           fi
 
+          ROLLBACK_TAG="${{ github.event.inputs.rollback_to }}"
+          if [ -z "$ROLLBACK_TAG" ]; then
+            ROLLBACK_TAG="$(git describe --tags --abbrev=0 "${RELEASE_TAG}^" 2>/dev/null || true)"
+          fi
+
           echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+          echo "rollback_tag=$ROLLBACK_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes
         run: |
           LIGHTAI_RELEASE_TAG='${{ steps.meta.outputs.release_tag }}' node scripts/release/generate-release-notes.mjs > RELEASE_NOTES.md
 
-      - name: Upload release notes
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-notes
-          path: RELEASE_NOTES.md
-
-      - name: Build rollback plan (optional)
-        if: ${{ github.event.inputs.rollback_to != '' }}
+      - name: Build rollback notes
         run: |
-          LIGHTAI_CURRENT_TAG='${{ steps.meta.outputs.release_tag }}' LIGHTAI_ROLLBACK_TAG='${{ github.event.inputs.rollback_to }}' node scripts/release/rollback-release.mjs > ROLLBACK_PLAN.json
+          LIGHTAI_CURRENT_TAG='${{ steps.meta.outputs.release_tag }}' \
+          LIGHTAI_ROLLBACK_TAG='${{ steps.meta.outputs.rollback_tag || steps.meta.outputs.release_tag }}' \
+          LIGHTAI_ROLLBACK_FORMAT='markdown' \
+          node scripts/release/rollback-release.mjs > ROLLBACK_NOTES.md
 
-      - name: Upload rollback plan (optional)
-        if: ${{ github.event.inputs.rollback_to != '' }}
+      - name: Test rollback procedure
+        run: |
+          LIGHTAI_CURRENT_TAG='${{ steps.meta.outputs.release_tag }}' \
+          LIGHTAI_ROLLBACK_TAG='${{ steps.meta.outputs.rollback_tag || steps.meta.outputs.release_tag }}' \
+          LIGHTAI_ROLLBACK_VALIDATE='true' \
+          LIGHTAI_SKIP_TAG_CHECK='${{ steps.meta.outputs.rollback_tag == '' && 'true' || 'false' }}' \
+          node scripts/release/rollback-release.mjs > /tmp/rollback-validation.json
+
+      - name: Upload release notes and rollback notes
         uses: actions/upload-artifact@v4
         with:
-          name: rollback-plan
-          path: ROLLBACK_PLAN.json
+          name: release-metadata
+          path: |
+            RELEASE_NOTES.md
+            ROLLBACK_NOTES.md
 
   build-desktop:
     needs: prepare
@@ -117,6 +129,11 @@ jobs:
       - name: Publish updater metadata signature
         run: npm run sign:build --prefix desktop
 
+      - name: Generate checksums
+        shell: bash
+        run: |
+          node -e "const fs=require('node:fs');const p=require('node:path');const c=require('node:crypto');const roots=['dist-desktop','desktop/signature'];const out=[];for(const root of roots){if(!fs.existsSync(root)) continue;const walk=(d)=>{for(const e of fs.readdirSync(d,{withFileTypes:true})){const f=p.join(d,e.name);if(e.isDirectory()) walk(f); else {const b=fs.readFileSync(f);out.push(`${c.createHash('sha512').update(b).digest('hex')}  ${f}`);}}};walk(root);}fs.writeFileSync('SHA512SUMS.txt',out.sort().join('\n')+'\n');"
+
       - name: Upload desktop artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -124,6 +141,7 @@ jobs:
           path: |
             dist-desktop/**
             desktop/signature/**
+            SHA512SUMS.txt
 
   publish:
     needs: [prepare, build-desktop]
@@ -131,10 +149,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download release notes
+      - name: Download release metadata
         uses: actions/download-artifact@v4
         with:
-          name: release-notes
+          name: release-metadata
 
       - name: Download macOS artifacts
         uses: actions/download-artifact@v4
@@ -148,12 +166,19 @@ jobs:
           name: desktop-windows-latest
           path: artifacts/windows
 
+      - name: Build final release body
+        shell: bash
+        run: |
+          cat RELEASE_NOTES.md > RELEASE_BODY.md
+          echo "\n\n## Rollback\n" >> RELEASE_BODY.md
+          cat ROLLBACK_NOTES.md >> RELEASE_BODY.md
+
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.prepare.outputs.release_tag }}
           prerelease: ${{ needs.prepare.outputs.channel == 'beta' }}
-          body_path: RELEASE_NOTES.md
+          body_path: RELEASE_BODY.md
           files: |
             artifacts/macos/**
             artifacts/windows/**
