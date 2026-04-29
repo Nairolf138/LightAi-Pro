@@ -35,6 +35,20 @@ Référence: `docs/product/plan-execution-phases.md`.
 - [ ] Scénarios critiques exécutés et passants.
 - [ ] Rapport scénarios versionné (`phase2-report.md`).
 - [ ] 100% des scénarios critiques passants.
+
+### Matrice cas limites — Critère P2-C04
+
+Transitions critiques identifiées dans le moteur:
+- `evaluateTimeline`: bascule en blackout déterministe lors d'un `follow: blackout` et purge curseur actif.
+- `ShowController.go/pause/back/jumpCue/blackout`: enchaînements rapides de commandes et ré-ancrage temporel (`anchorStartedAtMs`) sans dérive d'état.
+
+| ID scénario | Classe de risque | Description | Attendu cohérence état final | Preuve de test | Critère |
+|---|---|---|---|---|---|
+| P2-C04-S1 | Commandes concurrentes | `blackout` puis `jumpCue` au même timestamp | Pas de cue zombie, blackout levé, cue cible active | `tests/e2e/show-workflow.e2e.test.ts` (`commandes concurrentes blackout/jump`) | P2-C04 |
+| P2-C04-S2 | Transition interrompue | Cue en `follow: blackout` dépassée en temps | `playing=false`, `activeCueId=null`, valeurs à 0 déterministes | `tests/unit/lighting-engine.unit.test.ts` (`follow blackout`) | P2-C04 |
+| P2-C04-S3 | Ordre incohérent | `back` déclenché avant premier `go` | Retour propre sur `entryCueId`, historique borné (pas de duplication zombie) | `tests/unit/lighting-engine.unit.test.ts` (`back avant go`) | P2-C04 |
+| P2-C04-S4 | Enchaînement rapide | `go` → `pause` → `go` autour d'un fade et auto-follow | Progression temporelle cohérente, transition vers cue suivante sans état résiduel | `tests/e2e/show-workflow.e2e.test.ts` (`enchaînements rapides`) | P2-C04 |
+
 - Tickets/preuves:
   - [ ] `CUE-221` (robustesse exécution cues)
   - [ ] `QA-233` (tests scénarios critiques)
