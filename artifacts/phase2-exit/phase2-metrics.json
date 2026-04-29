@@ -1,0 +1,47 @@
+{
+  "generatedAt": "2026-04-29T07:46:11.849Z",
+  "p2c01": {
+    "tickets": [
+      "PROTO-201",
+      "QA-231"
+    ],
+    "latencyMs": {
+      "p95": 0.10037900000000377,
+      "max": 1.9461550000000045
+    }
+  },
+  "p2c02": {
+    "tickets": [
+      "PROTO-202",
+      "PROTO-203"
+    ],
+    "frames": {
+      "sent": 300,
+      "failed": 0,
+      "reliability": 1
+    }
+  },
+  "p2c04": {
+    "tickets": [
+      "CUE-221",
+      "QA-233"
+    ],
+    "criticalScenarios": {
+      "play": true,
+      "stop": true,
+      "next": true,
+      "prev": true,
+      "blackout": true
+    }
+  },
+  "p2c05": {
+    "tickets": [
+      "PROTO-204",
+      "QA-234"
+    ],
+    "reconnectMs": {
+      "p95": 0.008064999999987776,
+      "max": 0.09096800000000371
+    }
+  }
+}

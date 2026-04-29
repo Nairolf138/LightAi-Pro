@@ -1,0 +1,4 @@
+[PROTO-201] Latency p95=0.100ms
+[PROTO-202] Reliability=100.0000% (300/300)
+[CUE-221] Scenarios={"play":true,"stop":true,"next":true,"prev":true,"blackout":true}
+[PROTO-204] Reconnect p95=0.008ms
