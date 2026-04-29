@@ -7,6 +7,7 @@ import type {
   VaultSecretKeyRequest,
   VaultSecretRequest
 } from '../../desktop/ipc/contracts';
+import { observability } from './observability';
 
 const fallbackStatus: RuntimeStatus = {
   ready: false,
@@ -34,12 +35,32 @@ export const runtimeClient = {
   connectDevice: async (request: ConnectDeviceRequest): Promise<RuntimeStatus> =>
     getNativeApi().connectDevice(request),
   disconnectDevice: async (): Promise<RuntimeStatus> => getNativeApi().disconnectDevice(),
-  sendFrame: async (request: SendFrameRequest): Promise<void> => getNativeApi().sendFrame(request),
+  sendFrame: async (request: SendFrameRequest): Promise<void> => {
+    try {
+      await getNativeApi().sendFrame(request);
+    } catch (error) {
+      observability.error('runtimeClient', 'Frame send failed', {
+        request,
+        error: error instanceof Error ? error.message : String(error),
+      }, 'sev2', ['runtime', 'frame']);
+      throw error;
+    }
+  },
   getRuntimeStatus: async (): Promise<RuntimeStatus> => {
     if (!window.lightAiNative) {
+      observability.warn('runtimeClient', 'Native runtime unavailable, returning fallback status', undefined, [
+        'runtime',
+        'degraded',
+      ]);
       return fallbackStatus;
     }
-    return window.lightAiNative.getRuntimeStatus();
+    const status = await window.lightAiNative.getRuntimeStatus();
+    observability.setProtocolMetrics({
+      queueDepth: status.metrics.protocolQueueDepth,
+      queueHighWatermark: status.metrics.protocolQueueHighWatermark,
+      droppedFrames: status.metrics.protocolDroppedFrames,
+    });
+    return status;
   },
   vaultSetSecret: async (request: VaultSecretRequest): Promise<void> => getNativeApi().vaultSetSecret(request),
   vaultGetSecret: async (request: VaultSecretKeyRequest): Promise<string | null> =>

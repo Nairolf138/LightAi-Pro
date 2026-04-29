@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase, type Profile } from '../lib/supabase';
+import { observability } from '../lib/observability';
 
 export function useSupabaseProfile() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -14,6 +15,10 @@ export function useSupabaseProfile() {
 
     if (error) {
       console.error('Error fetching profile:', error);
+      observability.error('useSupabaseProfile', 'Failed to fetch Supabase profile', {
+        userId,
+        error: error.message,
+      }, 'sev3', ['auth', 'profile']);
       return;
     }
 
@@ -21,6 +26,22 @@ export function useSupabaseProfile() {
   }, []);
 
   useEffect(() => {
+    const handleReconnect = () => {
+      observability.incident('recovered', 'Client reconnected, refreshing authenticated profile');
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          fetchProfile(session.user.id);
+        }
+      });
+    };
+
+    const handleOffline = () => {
+      observability.incident('detected', 'Client went offline; profile and collaboration updates may be stale');
+    };
+
+    window.addEventListener('online', handleReconnect);
+    window.addEventListener('offline', handleOffline);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         fetchProfile(session.user.id);
@@ -37,7 +58,11 @@ export function useSupabaseProfile() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('online', handleReconnect);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, [fetchProfile]);
 
   return {

@@ -9,6 +9,15 @@ export interface ObservabilityLogEntry {
   sessionId: string;
   showId: string;
   data?: Record<string, unknown>;
+  tags?: string[];
+  incidentSeverity?: 'sev1' | 'sev2' | 'sev3' | 'none';
+}
+
+export interface IncidentTimelineEvent {
+  timestamp: string;
+  phase: 'detected' | 'mitigating' | 'recovered' | 'postmortem';
+  summary: string;
+  details?: Record<string, unknown>;
 }
 
 export interface RuntimeMetricsSnapshot {
@@ -57,12 +66,19 @@ class ObservabilityStore {
   private protocolQueueDepth = 0;
   private protocolQueueHighWatermark = 0;
   private protocolDroppedFrames = 0;
+  private incidentTimeline: IncidentTimelineEvent[] = [];
 
   setShowId(showId: string): void {
     this.showId = showId;
   }
 
-  log(level: ObservabilityLevel, module: string, message: string, data?: Record<string, unknown>): void {
+  log(
+    level: ObservabilityLevel,
+    module: string,
+    message: string,
+    data?: Record<string, unknown>,
+    options?: { tags?: string[]; incidentSeverity?: 'sev1' | 'sev2' | 'sev3' | 'none' }
+  ): void {
     const entry: ObservabilityLogEntry = {
       id: randomId(),
       timestamp: new Date().toISOString(),
@@ -72,6 +88,8 @@ class ObservabilityStore {
       sessionId: this.sessionId,
       showId: this.showId,
       data,
+      tags: options?.tags,
+      incidentSeverity: options?.incidentSeverity,
     };
 
     this.logs = [entry, ...this.logs].slice(0, LOG_LIMIT);
@@ -83,6 +101,10 @@ class ObservabilityStore {
     } else {
       console.info('[OBS]', entry);
     }
+  }
+
+  addIncidentEvent(event: IncidentTimelineEvent): void {
+    this.incidentTimeline = [event, ...this.incidentTimeline].slice(0, 120);
   }
 
   trackFrame(frameLatencyMs: number, dropped = false): void {
@@ -130,16 +152,31 @@ class ObservabilityStore {
       updatedAt: new Date().toISOString(),
     };
   }
+
+  getIncidentTimeline(): IncidentTimelineEvent[] {
+    return this.incidentTimeline;
+  }
 }
 
 const store = new ObservabilityStore();
 
 export const observability = {
   setShowId: (showId: string) => store.setShowId(showId),
-  debug: (module: string, message: string, data?: Record<string, unknown>) => store.log('debug', module, message, data),
-  info: (module: string, message: string, data?: Record<string, unknown>) => store.log('info', module, message, data),
-  warn: (module: string, message: string, data?: Record<string, unknown>) => store.log('warn', module, message, data),
-  error: (module: string, message: string, data?: Record<string, unknown>) => store.log('error', module, message, data),
+  debug: (module: string, message: string, data?: Record<string, unknown>, tags?: string[]) =>
+    store.log('debug', module, message, data, { tags, incidentSeverity: 'none' }),
+  info: (module: string, message: string, data?: Record<string, unknown>, tags?: string[]) =>
+    store.log('info', module, message, data, { tags, incidentSeverity: 'none' }),
+  warn: (module: string, message: string, data?: Record<string, unknown>, tags?: string[]) =>
+    store.log('warn', module, message, data, { tags, incidentSeverity: 'sev3' }),
+  error: (
+    module: string,
+    message: string,
+    data?: Record<string, unknown>,
+    severity: 'sev1' | 'sev2' | 'sev3' = 'sev2',
+    tags?: string[]
+  ) => store.log('error', module, message, data, { tags, incidentSeverity: severity }),
+  incident: (phase: IncidentTimelineEvent['phase'], summary: string, details?: Record<string, unknown>) =>
+    store.addIncidentEvent({ timestamp: new Date().toISOString(), phase, summary, details }),
   trackFrame: (frameLatencyMs: number, dropped = false) => store.trackFrame(frameLatencyMs, dropped),
   setProtocolMetrics: (metrics: {
     queueDepth: number;
@@ -186,6 +223,8 @@ export const buildIncidentReport = (options: {
     diagnostics: {
       ...snapshot,
       logs: options.exportScope === 'public' ? (sanitize(snapshot.logs) as ObservabilityLogEntry[]) : snapshot.logs,
+      incidentTimeline:
+        options.exportScope === 'public' ? (sanitize(store.getIncidentTimeline()) as IncidentTimelineEvent[]) : store.getIncidentTimeline(),
     },
     runtimeStatus: options.exportScope === 'public' ? sanitize(options.runtimeStatus) : options.runtimeStatus,
     config: options.exportScope === 'public' ? sanitize(options.appConfig) : options.appConfig,

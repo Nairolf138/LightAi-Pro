@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { observability } from './observability';
 
 export type ProjectRole = 'owner' | 'operator' | 'viewer';
 
@@ -47,6 +48,14 @@ export async function syncSharedShowState<TState extends Record<string, unknown>
   expectedVersion: number,
   patch: Partial<TState>
 ): Promise<SharedStateSyncResult<TState>> {
+  if (!navigator.onLine) {
+    observability.warn('liveCollaboration', 'Skipped sync while offline; local patch must be replayed on reconnect', {
+      sharedShowId,
+      expectedVersion,
+    }, ['offline', 'sync']);
+    throw new Error('offline_sync_deferred');
+  }
+
   const { data, error } = await supabase.rpc('sync_shared_show_state', {
     p_shared_show_id: sharedShowId,
     p_expected_version: expectedVersion,
@@ -54,6 +63,14 @@ export async function syncSharedShowState<TState extends Record<string, unknown>
   });
 
   if (error || !data) {
+    const isConflict = (error?.message ?? '').toLowerCase().includes('version conflict');
+    observability.error('liveCollaboration', 'Shared show sync failed', {
+      sharedShowId,
+      expectedVersion,
+      patch,
+      error: error?.message,
+      reason: isConflict ? 'edit_conflict' : 'rpc_error',
+    }, isConflict ? 'sev2' : 'sev3', ['sync', isConflict ? 'conflict' : 'failure']);
     throw new Error(error?.message ?? 'Failed to synchronize shared show state');
   }
 
@@ -98,6 +115,12 @@ export async function acquireLiveControlLock(params: {
   });
 
   if (error || !data) {
+    observability.error('liveCollaboration', 'Unable to acquire live control lock', {
+      projectId: params.projectId,
+      sessionId: params.sessionId,
+      ttlSeconds: params.ttlSeconds,
+      error: error?.message,
+    }, 'sev2', ['lock', 'conflict']);
     throw new Error(error?.message ?? 'Unable to acquire live control lock');
   }
 
@@ -109,6 +132,13 @@ export async function heartbeatLiveControlLock(params: {
   sessionId: string;
   ttlSeconds?: number;
 }): Promise<LiveControlLock> {
+  if (!navigator.onLine) {
+    observability.warn('liveCollaboration', 'Heartbeat skipped while offline', {
+      projectId: params.projectId,
+      sessionId: params.sessionId,
+    }, ['offline', 'lock']);
+    throw new Error('offline_heartbeat_skipped');
+  }
   const { data, error } = await supabase.rpc('heartbeat_live_control_lock', {
     p_project_id: params.projectId,
     p_session_id: params.sessionId,
