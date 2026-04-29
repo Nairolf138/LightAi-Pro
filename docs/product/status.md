@@ -63,3 +63,11 @@
 | Date | Objet | Décision | Références preuves | Signataires |
 |---|---|---|---|---|
 | YYYY-MM-DD | Gate P1 | GO/NO-GO | `liens` | Product, Tech Lead, QA |
+
+
+## 6) Limitations levées ce mois-ci
+
+| Mois | Limitation ID | Limitation levée | Ticket(s) clôturé(s) | Impact utilisateur observé | Validation (preuve mesurable) |
+|---|---|---|---|---|---|
+| 2026-04 | `à renseigner` | `à renseigner` | `PROTO-* / ENG-* / PKG-* / QA-* / FIELD-*` | `à renseigner` | `bench, QA report, ticket de clôture` |
+
