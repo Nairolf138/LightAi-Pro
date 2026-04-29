@@ -1,8 +1,8 @@
 # Plan d’exécution — Stabilisation technique vers pilote terrain
 
 ## Statut du document
-- **Version** : 1.0
-- **Date** : 6 avril 2026
+- **Version** : 1.1
+- **Date** : 29 avril 2026
 - **Portée** : formalisation exécutable en 3 phases, avec critères de sortie mesurables et traçabilité tickets.
 - **Principe** : **aucune phase ne démarre sans validation explicite de la phase précédente** (go/no-go).
 
@@ -38,122 +38,56 @@
 
 ---
 
-## 2) Phase 1 (4–6 semaines) — Refacto architecture + moteur + simulateur
+## 2) Backlog opérationnel (Epics + sous-tickets) et statut vivant
 
-## Objectif
-Rendre la base technique robuste, testable et prédictible avant connexion à du matériel réel.
+> Utilisation recommandée : **1 Epic par critère** + **sous-tickets techniques/QA/preuves**. Le statut se met à jour en continu dans `docs/product/status.md`.
 
-## Lots de travail
-1. **Refactor architecture runtime**
-   - Isolation claire `UI` / `Application Services` / `Engine Runtime` / `IO Adapters`.
-   - Contrats d’interface stables entre couches.
-2. **Stabilisation moteur**
-   - Horloge interne unifiée.
-   - Pipeline d’exécution deterministic (tick, scheduling cues, priorité blackout).
-3. **Simulateur**
-   - Simulateur fixtures exploitant la même API que les sorties réelles.
-   - Scénarios de charge reproductibles pour tests de non-régression.
+| Critère | Epic recommandé | Sous-tickets minimum | Type de preuve obligatoire | Lien preuve (à renseigner) | Décision go/no-go datée (à renseigner) | Statut vivant |
+|---|---|---|---|---|---|---|
+| **P1-C01** Couverture tests moteur | `EPIC-P1-C01` | `ENG-101`, `ENG-102`, `QA-131` | Rapport de couverture CI | `CI-COV-P1-C01` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P1-C02** Jitter boucle moteur | `EPIC-P1-C02` | `ENG-111`, `SIM-121`, `QA-132` | Bench/runtime metrics export | `BENCH-P1-C02` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P1-C03** Stabilité simulateur | `EPIC-P1-C03` | `SIM-122`, `QA-131` | Logs de campagne + rapport exécution | `LOG-P1-C03` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P1-C04** ADR architecture | `EPIC-P1-C04` | `ARCH-141`, `ARCH-142` | QA report architecture + ADR signées | `ADR-P1-C04` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P1-C05** Temps blackout simulateur | `EPIC-P1-C05` | `ENG-151`, `QA-132` | Résultat test automatisé + logs | `TEST-P1-C05` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P2-C01** Latence commande→émission | `EPIC-P2-C01` | `PROTO-201`, `QA-231` | Bench hardware reproductible | `BENCH-P2-C01` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P2-C02** Fiabilité protocolaire | `EPIC-P2-C02` | `PROTO-202`, `PROTO-203`, `QA-231` | Logs protocole + dashboard erreurs | `LOG-P2-C02` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P2-C03** Intégrité patch fixtures | `EPIC-P2-C03` | `PATCH-211`, `QA-232` | Rapport suite tests patch | `QA-P2-C03` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P2-C04** Exécution cue list | `EPIC-P2-C04` | `CUE-221`, `QA-233` | QA report scénarios critiques | `QA-P2-C04` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P2-C05** Résilience déconnexion | `EPIC-P2-C05` | `PROTO-204`, `ENG-234`, `QA-233` | Campagne chaos + logs temps de reprise | `CHAOS-P2-C05` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P3-C01** Packaging desktop signé | `EPIC-P3-C01` | `PKG-301`, `PKG-302` | Artifacts CI + checksums | `CI-P3-C01` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P3-C02** Endurance runtime | `EPIC-P3-C02` | `QA-311`, `ENG-312` | Rapport soak test + logs mémoire | `SOAK-P3-C02` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P3-C03** Taux de régression | `EPIC-P3-C03` | `QA-313`, `QA-314` | Rapport QA final release | `QA-P3-C03` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P3-C04** Qualité pilote terrain | `EPIC-P3-C04` | `FIELD-321`, `FIELD-322` | Journal incidents hebdo | `FIELD-P3-C04` | `YYYY-MM-DD • Go/No-Go` | TODO |
+| **P3-C05** Prêt déploiement élargi | `EPIC-P3-C05` | `PKG-303`, `FIELD-323`, `QA-314` | Checklist release signée | `REL-P3-C05` | `YYYY-MM-DD • Go/No-Go` | TODO |
 
-## Critères de sortie mesurables (DoD Phase 1)
-| ID critère | Critère mesurable | Seuil de réussite | Preuve attendue | Tickets liés (minimum) |
-|---|---|---|---|---|
-| P1-C01 | Couverture des tests unitaires du moteur | ≥ 80% sur modules moteur critiques | Rapport de couverture CI | `ENG-101`, `ENG-102` |
-| P1-C02 | Jitter boucle moteur en simulateur | p95 ≤ 5 ms sur run 30 min | Export métriques runtime | `ENG-111`, `SIM-121` |
-| P1-C03 | Stabilité simulateur en charge | 0 crash non géré sur campagne 2h | Rapport d’exécution + logs | `SIM-122`, `QA-131` |
-| P1-C04 | Dette architecture bloquante | 100% des ADR P1 validées | Dossier ADR signé TL | `ARCH-141`, `ARCH-142` |
-| P1-C05 | Temps de blackout (simulateur) | ≤ 100 ms (p95) | Test automatisé dédié | `ENG-151`, `QA-132` |
-
-## Gate de sortie
-- **Go Phase 2** si **100%** des critères P1-C01 à P1-C05 sont atteints.
-- Exception possible uniquement via dérogation écrite Product + Tech Lead (durée max 5 jours ouvrés).
+### Statut vivant par critère
+- Valeurs recommandées : `TODO`, `IN_PROGRESS`, `AT_RISK`, `BLOCKED`, `DONE`.
+- Un critère **DONE** doit avoir :
+  1) toutes les preuves liées,
+  2) date de décision,
+  3) décision explicite `Go`.
+- Un critère **No-Go** reste `BLOCKED` jusqu’à plan de remédiation approuvé.
 
 ---
 
-## 3) Phase 2 (4–8 semaines) — Protocoles réels + patch fixtures + cue engine
-
-## Objectif
-Passer d’un runtime validé en simulation à un runtime opérationnel sur matériel/protocoles réels.
-
-## Lots de travail
-1. **Protocoles réels**
-   - Implémentation et validation Art-Net (P0), DMX USB (P1), OSC (P2).
-   - Gestion reconnexion, timeout, erreurs réseau/USB.
-2. **Patch fixtures**
-   - CRUD patch complet, validation adresses/conflits.
-   - Persistance versionnée show patch.
-3. **Cue engine**
-   - Transitions (fade in/out), délais, enchaînement fiable.
-   - Priorité hard du blackout.
-
-## Critères de sortie mesurables (DoD Phase 2)
-| ID critère | Critère mesurable | Seuil de réussite | Preuve attendue | Tickets liés (minimum) |
-|---|---|---|---|---|
-| P2-C01 | Latence commande → émission réelle | ≤ 40 ms (p95) sur setup de référence | Bench hardware reproductible | `PROTO-201`, `QA-231` |
-| P2-C02 | Fiabilité émission protocolaire | ≥ 99.5% trames envoyées sans erreur fatale sur 1h | Logs protocole + dashboard erreurs | `PROTO-202`, `PROTO-203` |
-| P2-C03 | Intégrité patch fixtures | 0 conflit adresse non détecté en tests fonctionnels | Suite tests patch verte | `PATCH-211`, `QA-232` |
-| P2-C04 | Exécution cue list | 100% des scénarios critiques passants (play/stop/next/prev/blackout) | Rapport QA scénarios | `CUE-221`, `QA-233` |
-| P2-C05 | Résilience perte connexion | Reconnexion ou fallback < 3 s sur 95% des cas injectés | Campagne chaos/protocole | `PROTO-204`, `ENG-234` |
-
-## Gate de sortie
+## 3) Gates de phase (rappel)
+- **Go Phase 2** si **100%** des critères P1-C01 à P1-C05 sont validés.
 - **Go Phase 3** si P2-C01..P2-C05 validés + aucun bug Sev1 ouvert sur protocoles/cue engine.
-
----
-
-## 4) Phase 3 (4–6 semaines) — Packaging desktop + QA lourde + pilote terrain
-
-## Objectif
-Industrialiser la livraison, prouver la stabilité en environnement proche production, puis en pilote.
-
-## Lots de travail
-1. **Packaging desktop**
-   - Builds signés Windows/macOS.
-   - Politique de mise à jour et rollback.
-2. **QA lourde**
-   - Campagnes endurance, montée en charge, non-régression multi-OS.
-   - Matrice de compatibilité interfaces USB-DMX validées MVP.
-3. **Pilote terrain**
-   - Déploiement restreint (sites pilotes).
-   - Collecte incidents + boucle de correction rapide.
-
-## Critères de sortie mesurables (DoD Phase 3)
-| ID critère | Critère mesurable | Seuil de réussite | Preuve attendue | Tickets liés (minimum) |
-|---|---|---|---|---|
-| P3-C01 | Succès packaging desktop | 100% builds installables/signés sur OS cibles | Artifacts CI + checksum | `PKG-301`, `PKG-302` |
-| P3-C02 | Endurance runtime | 8h sans crash ni fuite mémoire critique | Rapport soak test | `QA-311`, `ENG-312` |
-| P3-C03 | Taux de régression | 0 régression Sev1/Sev2 sur suite release | Rapport QA final | `QA-313`, `QA-314` |
-| P3-C04 | Qualité pilote terrain | ≤ 3 incidents Sev2 max / semaine / site et 0 Sev1 | Journal incidents pilote | `FIELD-321`, `FIELD-322` |
-| P3-C05 | Prêt pour déploiement élargi | 100% actions post-pilote closes | Check-list release signée | `PKG-303`, `FIELD-323` |
-
-## Gate de sortie
 - **Go Release élargie** si P3-C01..P3-C05 validés et comité release approuve.
 
 ---
 
-## 5) Matrice de traçabilité (critères ⇄ tickets)
+## 4) Process de preuve et décision
 
-| Phase | Critère | Tickets techniques requis | Statut (à maintenir) |
-|---|---|---|---|
-| Phase 1 | P1-C01 | `ENG-101`, `ENG-102` | TODO |
-| Phase 1 | P1-C02 | `ENG-111`, `SIM-121` | TODO |
-| Phase 1 | P1-C03 | `SIM-122`, `QA-131` | TODO |
-| Phase 1 | P1-C04 | `ARCH-141`, `ARCH-142` | TODO |
-| Phase 1 | P1-C05 | `ENG-151`, `QA-132` | TODO |
-| Phase 2 | P2-C01 | `PROTO-201`, `QA-231` | TODO |
-| Phase 2 | P2-C02 | `PROTO-202`, `PROTO-203` | TODO |
-| Phase 2 | P2-C03 | `PATCH-211`, `QA-232` | TODO |
-| Phase 2 | P2-C04 | `CUE-221`, `QA-233` | TODO |
-| Phase 2 | P2-C05 | `PROTO-204`, `ENG-234` | TODO |
-| Phase 3 | P3-C01 | `PKG-301`, `PKG-302` | TODO |
-| Phase 3 | P3-C02 | `QA-311`, `ENG-312` | TODO |
-| Phase 3 | P3-C03 | `QA-313`, `QA-314` | TODO |
-| Phase 3 | P3-C04 | `FIELD-321`, `FIELD-322` | TODO |
-| Phase 3 | P3-C05 | `PKG-303`, `FIELD-323` | TODO |
-
-> Recommandation opérationnelle : convertir ce tableau en “Epic + child tickets” dans l’outil de suivi (Jira/Linear/GitHub Projects), avec lien direct vers les preuves (rapport CI, logs, dashboards, procès-verbal go/no-go).
+Pour **chaque critère** P1/P2/P3 :
+1. Lier au moins une preuve exploitable : rapport CI, logs, bench, QA report.
+2. Ajouter un résumé en 3 lignes max dans `docs/product/status.md`.
+3. Capturer la décision go/no-go avec **date ISO** (`YYYY-MM-DD`) + décideurs.
+4. Conserver l’historique (ne pas écraser les décisions précédentes).
 
 ---
 
-## 6) Risques principaux et contre-mesures
+## 5) Risques principaux et contre-mesures
 
 - **Risque R1 — Variabilité matériel USB-DMX**
   - Contre-mesure : shortlist matérielle figée en début de phase 2 + banc de test dédié.
@@ -166,7 +100,7 @@ Industrialiser la livraison, prouver la stabilité en environnement proche produ
 
 ---
 
-## 7) Décision de lancement
+## 6) Décision de lancement
 
 - Sponsor produit : ☐
 - Tech Lead : ☐
