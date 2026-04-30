@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "required": ["universe", "channelValues"],
+  "properties": {
+    "universe": { "type": "integer", "minimum": 0 },
+    "channelValues": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 0, "maximum": 255 },
+      "maxItems": 512
+    }
+  }
+}

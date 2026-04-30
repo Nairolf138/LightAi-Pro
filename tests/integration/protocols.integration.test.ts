@@ -1,7 +1,15 @@
 import { test, assert } from '../harness';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { ArtNetOutputDriver } from '../../src/core/protocols/drivers/artnet';
 import { OscOutputDriver } from '../../src/core/protocols/drivers/osc';
 import { LightingOutputRouter } from '../../src/core/protocols/selector';
+import {
+  IPC_CONTRACT_VERSION,
+  assertConnectDeviceRequest,
+  assertRuntimeStatus,
+  assertSendFrameRequest
+} from '../../desktop/ipc/contracts';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -120,4 +128,46 @@ test('Router: déconnexion/reconnexion lors du reconfigure', async () => {
 
   assert.deepEqual(events, ['configured-artnet', 'configured-osc']);
   assert.equal(router.getActiveDriver()?.metadata.kind, 'osc');
+});
+
+test('IPC payloads invalides/champs manquants sont rejetés', async () => {
+  assert.throws(() => assertConnectDeviceRequest({}), /Invalid connect device payload/);
+  assert.throws(() => assertSendFrameRequest({ universe: 0 }), /channelValues/);
+  assert.throws(() => assertRuntimeStatus({ ready: true }), /contractVersion/);
+});
+
+test('IPC payload extrême DMX est accepté (512 canaux)', async () => {
+  const payload = { universe: 0, channelValues: new Array(512).fill(255) };
+  assert.doesNotThrow(() => assertSendFrameRequest(payload));
+});
+
+test('runtime:status mismatch de version est détecté', async () => {
+  const runtimeStatus = {
+    contractVersion: '0.9.0',
+    ready: true,
+    connectedDeviceId: null,
+    protocol: null,
+    dryRun: false,
+    deviceStatus: null,
+    metrics: { protocolQueueDepth: 0, protocolQueueHighWatermark: 0, protocolDroppedFrames: 0 }
+  };
+  assert.notEqual(runtimeStatus.contractVersion, IPC_CONTRACT_VERSION);
+});
+
+test('Snapshot schéma: SendFrameRequest', async () => {
+  const snapshot = JSON.parse(readFileSync(join(process.cwd(), 'tests/snapshots/send-frame-request.schema.json'), 'utf8'));
+  assert.deepEqual(snapshot, {
+    type: 'object',
+    required: ['universe', 'channelValues'],
+    properties: {
+      universe: { type: 'integer', minimum: 0 },
+      channelValues: { type: 'array', items: { type: 'integer', minimum: 0, maximum: 255 }, maxItems: 512 }
+    }
+  });
+});
+
+test('Snapshot schéma: RuntimeStatus', async () => {
+  const snapshot = JSON.parse(readFileSync(join(process.cwd(), 'tests/snapshots/runtime-status.schema.json'), 'utf8'));
+  assert.equal(snapshot.properties.contractVersion.const, IPC_CONTRACT_VERSION);
+  assert.deepEqual(snapshot.required.slice(0, 2), ['contractVersion', 'ready']);
 });

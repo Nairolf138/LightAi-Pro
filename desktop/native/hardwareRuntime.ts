@@ -1,4 +1,4 @@
-import type { ConnectDeviceRequest, HardwareDevice, RuntimeStatus, SendFrameRequest } from '../ipc/contracts';
+import { IPC_CONTRACT_VERSION, type ConnectDeviceRequest, type HardwareDevice, type RuntimeStatus, type SendFrameRequest } from '../ipc/contracts';
 import {
   ArtnetAdapter,
   DmxUsbAdapter,
@@ -40,6 +40,7 @@ export class HardwareRuntime {
   private readonly deviceStates = new Map<string, DeviceRuntimeState>();
 
   private status: RuntimeStatus = {
+    contractVersion: IPC_CONTRACT_VERSION,
     ready: true,
     connectedDeviceId: null,
     protocol: null,
