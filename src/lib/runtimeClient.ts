@@ -1,4 +1,5 @@
 import type {
+  RuntimeStatusHandshake,
   ConnectDeviceRequest,
   HardwareDevice,
   NativeIpcApi,
@@ -7,9 +8,11 @@ import type {
   VaultSecretKeyRequest,
   VaultSecretRequest
 } from '../../desktop/ipc/contracts';
+import { assertRuntimeStatus as assertRuntimeStatusPayload, IPC_CONTRACT_VERSION as EXPECTED_IPC_CONTRACT_VERSION } from '../../desktop/ipc/contracts';
 import { observability } from './observability';
 
 const fallbackStatus: RuntimeStatus = {
+  contractVersion: EXPECTED_IPC_CONTRACT_VERSION,
   ready: false,
   connectedDeviceId: null,
   protocol: null,
@@ -22,6 +25,7 @@ const fallbackStatus: RuntimeStatus = {
 
 const unavailableError =
   'Native runtime unavailable. Start the desktop shell to access hardware protocols.';
+const incompatibleRuntimeErrorPrefix = 'Incompatible native runtime contract';
 
 function getNativeApi(): NativeIpcApi {
   if (!window.lightAiNative) {
@@ -46,21 +50,27 @@ export const runtimeClient = {
       throw error;
     }
   },
-  getRuntimeStatus: async (): Promise<RuntimeStatus> => {
+  getRuntimeStatus: async (): Promise<RuntimeStatusHandshake> => {
     if (!window.lightAiNative) {
       observability.warn('runtimeClient', 'Native runtime unavailable, returning fallback status', undefined, [
         'runtime',
         'degraded',
       ]);
-      return fallbackStatus;
+      return { ...fallbackStatus, compatible: true };
     }
     const status = await window.lightAiNative.getRuntimeStatus();
+    assertRuntimeStatusPayload(status);
+    if (status.contractVersion !== EXPECTED_IPC_CONTRACT_VERSION) {
+      throw new Error(
+        `${incompatibleRuntimeErrorPrefix}: operator action required. Renderer expects ${EXPECTED_IPC_CONTRACT_VERSION}, native runtime reports ${status.contractVersion}. Restart and redeploy both desktop shell and renderer with the same build.`,
+      );
+    }
     observability.setProtocolMetrics({
       queueDepth: status.metrics.protocolQueueDepth,
       queueHighWatermark: status.metrics.protocolQueueHighWatermark,
       droppedFrames: status.metrics.protocolDroppedFrames,
     });
-    return status;
+    return { ...status, compatible: true };
   },
   vaultSetSecret: async (request: VaultSecretRequest): Promise<void> => getNativeApi().vaultSetSecret(request),
   vaultGetSecret: async (request: VaultSecretKeyRequest): Promise<string | null> =>

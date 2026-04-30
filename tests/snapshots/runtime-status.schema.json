@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "required": ["contractVersion", "ready", "connectedDeviceId", "protocol", "dryRun", "metrics"],
+  "properties": {
+    "contractVersion": { "type": "string", "const": "1.1.0" },
+    "ready": { "type": "boolean" },
+    "connectedDeviceId": { "type": ["string", "null"] },
+    "protocol": { "type": ["string", "null"], "enum": ["dmx", "artnet", "osc", null] },
+    "dryRun": { "type": "boolean" },
+    "metrics": {
+      "type": "object",
+      "required": ["protocolQueueDepth", "protocolQueueHighWatermark", "protocolDroppedFrames"]
+    }
+  }
+}
