@@ -26,10 +26,28 @@ export type RuntimeMetrics = {
   protocolDroppedFrames: number;
 };
 
+export type DeviceRuntimeStatus = {
+  deviceId: string;
+  latencyMs: number | null;
+  recentErrors: string[];
+  reconnect: {
+    active: boolean;
+    attempts: number;
+    nextRetryAt: number | null;
+    backoffMs: number;
+  };
+  circuitBreaker: {
+    open: boolean;
+    openUntil: number | null;
+  };
+};
+
 export type RuntimeStatus = {
   ready: boolean;
   connectedDeviceId: string | null;
   protocol: DeviceProtocol | null;
+  dryRun: boolean;
+  deviceStatus: DeviceRuntimeStatus | null;
   metrics: RuntimeMetrics;
 };
 
