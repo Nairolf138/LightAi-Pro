@@ -120,3 +120,21 @@ La chaîne de release détaillée (signature, auto-update, rollback) est documen
 ## Test de restauration
 - Exécuter mensuellement un test complet de restauration sur machine de préproduction.
 - Vérifier ouverture show + lecture cue list + blackout.
+
+---
+
+## 4) Compatibilité adaptateurs matériels
+
+Le runtime natif prend en charge les adaptateurs `dmx`, `artnet` et `osc` via une interface commune et expose un mode `dry-run` (`LIGHTAI_HARDWARE_DRY_RUN=true`) pour rejouer les flux sans émission physique.
+
+| Adaptateur | Windows 10/11 | macOS 13+ | Notes opérationnelles |
+|---|---|---|---|
+| DMX USB (`dmxUsbAdapter`) | ✅ Supporté | ⚠️ Pilotes selon chipset | Vérifier driver USB/FTDI avant show, latence typique 2-10ms. |
+| Art-Net (`artnetAdapter`) | ✅ Supporté | ✅ Supporté | Dépend du réseau local (broadcast/unicast), surveiller univers et collisions IP. |
+| OSC (`oscAdapter`) | ✅ Supporté | ✅ Supporté | Support UDP standard; valider mapping d'adresses OSC côté console/récepteur. |
+| Dry-run matériel (`dryRunAdapter`) | ✅ Supporté | ✅ Supporté | Aucun transport physique; utile pour tests de charge et diagnostics. |
+
+### Résilience live
+- Reconnexion automatique par device avec backoff exponentiel borné (500ms → 10s).
+- Circuit breaker par device: ouverture temporaire après erreurs de transport répétées.
+- État détaillé disponible via `runtime:status` (latence, erreurs récentes, reconnexion, circuit breaker).
