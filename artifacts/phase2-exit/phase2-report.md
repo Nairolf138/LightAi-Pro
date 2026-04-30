@@ -1,10 +1,20 @@
 # Phase 2 Exit Bench Report
 
-- Date: 2026-04-29T07:46:11.850Z
-- Scope: protocols + cue/show + lighting-engine
+- Date: 2026-04-30T14:54:42.776Z
+- Scenario: phase2-protocols-unified
+- Metrics schema version: 2.0.0
 
-## Résultats
-- P2-C01 [PROTO-201, QA-231]: p95 latence 0.100 ms
-- P2-C02 [PROTO-202, PROTO-203]: fiabilité 100.0000%
-- P2-C04 [CUE-221, QA-233]: scénarios PASS
-- P2-C05 [PROTO-204, QA-234]: reconnexion p95 0.008 ms
+## Blocking thresholds
+- P2-C01 p95 latency <= 40 ms
+- P2-C02 success rate >= 99.50%
+- P2-C05 reconnect/fallback p95 <= 3000 ms
+
+## QA summary
+| Criterion | Value | Threshold | Verdict |
+|---|---:|---:|---|
+| P2-C01 latency p95 | 0.136 ms | <= 40 ms | PASS |
+| P2-C02 success rate | 100.0000 % | >= 99.50 % | PASS |
+| P2-C05 reconnect p95 | 0.025 ms | <= 3000 ms | PASS |
+
+## P2-C04 command scenarios
+- Play/Stop/Next/Prev/Blackout: PASS

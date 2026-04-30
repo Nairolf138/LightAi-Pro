@@ -1,14 +1,29 @@
 {
-  "generatedAt": "2026-04-29T07:46:11.849Z",
+  "schemaVersion": "2.0.0",
+  "generatedAt": "2026-04-30T14:54:42.773Z",
+  "run": {
+    "scenarioId": "phase2-protocols-unified",
+    "samples": {
+      "latency": 300,
+      "reconnect": 80,
+      "frames": 300
+    }
+  },
+  "thresholds": {
+    "p95LatencyMs": 40,
+    "successRate": 0.995,
+    "p95ReconnectMs": 3000
+  },
   "p2c01": {
     "tickets": [
       "PROTO-201",
       "QA-231"
     ],
     "latencyMs": {
-      "p95": 0.10037900000000377,
-      "max": 1.9461550000000045
-    }
+      "p95": 0.13607600000000275,
+      "max": 3.032827999999995
+    },
+    "pass": true
   },
   "p2c02": {
     "tickets": [
@@ -18,8 +33,9 @@
     "frames": {
       "sent": 300,
       "failed": 0,
-      "reliability": 1
-    }
+      "successRate": 1
+    },
+    "pass": true
   },
   "p2c04": {
     "tickets": [
@@ -32,7 +48,8 @@
       "next": true,
       "prev": true,
       "blackout": true
-    }
+    },
+    "pass": true
   },
   "p2c05": {
     "tickets": [
@@ -40,8 +57,9 @@
       "QA-234"
     ],
     "reconnectMs": {
-      "p95": 0.008064999999987776,
-      "max": 0.09096800000000371
-    }
+      "p95": 0.025285999999994146,
+      "max": 2.286764000000005
+    },
+    "pass": true
   }
 }

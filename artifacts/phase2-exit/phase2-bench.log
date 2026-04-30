@@ -1,4 +1,4 @@
-[PROTO-201] Latency p95=0.100ms
-[PROTO-202] Reliability=100.0000% (300/300)
-[CUE-221] Scenarios={"play":true,"stop":true,"next":true,"prev":true,"blackout":true}
-[PROTO-204] Reconnect p95=0.008ms
+[PROTO-201] Latency p95=0.136ms / threshold<=40ms => PASS
+[PROTO-202] SuccessRate=100.0000% / threshold>=99.50% => PASS (300/300)
+[CUE-221] Scenarios={"play":true,"stop":true,"next":true,"prev":true,"blackout":true} => PASS
+[PROTO-204] Reconnect p95=0.025ms / threshold<=3000ms => PASS
