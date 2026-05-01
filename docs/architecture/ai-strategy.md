@@ -104,3 +104,34 @@ Aucun déploiement DL en production sans une phase d'évaluation offline structu
 - **Court terme**: renforcer l'approche **LLM + heuristiques**.
 - **Moyen terme**: construire la télémétrie et le dataset supervisé.
 - **Long terme**: envisager DL custom uniquement après validation stricte des critères go/no-go.
+
+## 5) Contrat du modèle interne de capacités fixtures
+
+Pour aligner l'IA (suggestions palettes/groupes) avec le modèle canonique show (`docs/architecture/show-canonical-model.md`), le moteur fixture expose désormais un schéma interne normalisé `capabilities/channelMap/constraints`.
+
+### Structure contractuelle
+- `capabilities`: dictionnaire par `attributeId` (ex: `color.rgb`, `position.pan`) incluant canaux, résolution et plage.
+- `channelMap`: index strict 1..N des canaux DMX du mode, avec type de famille, attribut résolu, plage et valeur par défaut.
+- `constraints`: espace réservé pour contraintes déclaratives explicites (types/ranges/dépendances de mode), complété par les validateurs.
+
+### Conversion
+- Source: définitions existantes `FixtureProfile` / `FixtureProfileMode` (`lightai.fixture.v1`).
+- Convertisseur: `toCapabilitySchema(profile, mode)`.
+- Garanties: conservation des IDs de profil/mode, attribution canonique stable, résolution/ranges dérivées de la définition brute.
+
+### Validation stricte
+Le validateur `validateCapabilitySchema(schema)` produit un rapport d'incohérence structuré (code, sévérité, message, canal) couvrant:
+- types de canal invalides,
+- plages incohérentes (`min > max`),
+- valeurs par défaut hors plage,
+- dépendances fine/coarse absentes (mode dependency).
+
+### Index de recherche précalculés
+`buildCapabilityIndexes(schema)` expose des index optimisés pour la suggestion IA:
+- `byAttribute`: recherche directe attribut -> canaux.
+- `byFamily`: regroupement rapide par famille (`color`, `position`, `beam`, etc.).
+- `byDmxRange`: segments triés pour heuristiques basées sur plages DMX.
+
+### Compatibilité inter-fixtures
+- La normalisation garantit un contrat identique entre fixtures hétérogènes.
+- Les tests de conversion/validation/indexation servent de garde-fou de compatibilité entre fixtures et modes.
