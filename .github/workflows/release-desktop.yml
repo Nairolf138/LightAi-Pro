@@ -58,6 +58,18 @@ jobs:
         run: |
           LIGHTAI_RELEASE_TAG='${{ steps.meta.outputs.release_tag }}' node scripts/release/generate-release-notes.mjs > RELEASE_NOTES.md
 
+      - name: Validate release notes content
+        shell: bash
+        run: |
+          if [ ! -s RELEASE_NOTES.md ]; then
+            echo "::error::RELEASE_NOTES.md est vide. Vérifiez scripts/release/generate-release-notes.mjs."
+            exit 1
+          fi
+          if ! rg -q '^## ' RELEASE_NOTES.md; then
+            echo "::error::RELEASE_NOTES.md ne contient aucun titre de section Markdown (##)."
+            exit 1
+          fi
+
       - name: Build rollback notes
         run: |
           LIGHTAI_CURRENT_TAG='${{ steps.meta.outputs.release_tag }}' \
@@ -81,8 +93,49 @@ jobs:
             RELEASE_NOTES.md
             ROLLBACK_NOTES.md
 
-  build-desktop:
+  release-gates:
     needs: prepare
+    runs-on: ubuntu-latest
+    outputs:
+      compatibility_status: ${{ steps.gate_status.outputs.compatibility_status }}
+      release_notes_status: ${{ steps.gate_status.outputs.release_notes_status }}
+      signed_integrity_status: ${{ steps.gate_status.outputs.signed_integrity_status }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate project compatibility policy
+        id: compat
+        run: |
+          LIGHTAI_APP_VERSION='${{ needs.prepare.outputs.release_tag }}' LIGHTAI_PROJECT_FORMAT_VERSION=2 node scripts/release/verify-project-compat.mjs
+
+      - name: Generate release notes (blocking check)
+        id: notes
+        run: |
+          LIGHTAI_RELEASE_TAG='${{ needs.prepare.outputs.release_tag }}' node scripts/release/generate-release-notes.mjs > /tmp/release-gate-notes.md
+
+      - name: Verify release notes quality gate
+        id: notes_quality
+        shell: bash
+        run: |
+          if [ ! -s /tmp/release-gate-notes.md ]; then
+            echo "::error::Les notes de version générées sont vides."
+            exit 1
+          fi
+          if ! rg -q '^## ' /tmp/release-gate-notes.md; then
+            echo "::error::Les notes de version ne contiennent aucune section détaillée."
+            exit 1
+          fi
+
+      - name: Emit release gate statuses
+        id: gate_status
+        run: |
+          echo "compatibility_status=passed" >> "$GITHUB_OUTPUT"
+          echo "release_notes_status=passed" >> "$GITHUB_OUTPUT"
+          echo "signed_integrity_status=pending-build-check" >> "$GITHUB_OUTPUT"
+
+  build-desktop:
+    needs: [prepare, release-gates]
     strategy:
       fail-fast: false
       matrix:
@@ -114,10 +167,6 @@ jobs:
       - name: Build web app
         run: npm run build
 
-      - name: Validate project compatibility policy
-        run: |
-          LIGHTAI_APP_VERSION='${{ needs.prepare.outputs.release_tag }}' LIGHTAI_PROJECT_FORMAT_VERSION=2 node scripts/release/verify-project-compat.mjs
-
       - name: Build signed desktop installers
         run: |
           if [ "${{ runner.os }}" = "macOS" ]; then
@@ -128,6 +177,19 @@ jobs:
 
       - name: Publish updater metadata signature
         run: npm run sign:build --prefix desktop
+
+      - name: Validate signed build integrity
+        shell: bash
+        run: |
+          if [ ! -d desktop/signature ] || [ -z "$(find desktop/signature -type f 2>/dev/null)" ]; then
+            echo "::error::Aucun artefact de signature trouvé dans desktop/signature."
+            echo "::error::Vérifiez npm run sign:build --prefix desktop et les secrets de signature."
+            exit 1
+          fi
+          if [ ! -d dist-desktop ] || [ -z "$(find dist-desktop -type f 2>/dev/null)" ]; then
+            echo "::error::Aucun artefact build trouvé dans dist-desktop."
+            exit 1
+          fi
 
       - name: Generate checksums
         shell: bash
@@ -144,11 +206,39 @@ jobs:
             SHA512SUMS.txt
 
   publish:
-    needs: [prepare, build-desktop]
+    needs: [prepare, release-gates, build-desktop]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - name: Validate required secrets
+        shell: bash
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          missing=0
+          check_secret() {
+            name="$1"
+            value="$2"
+            if [ -z "$value" ]; then
+              echo "::error::Secret manquant: $name. Ajoutez-le dans Settings > Secrets and variables > Actions."
+              missing=1
+            fi
+          }
+          check_secret "CSC_LINK" "$CSC_LINK"
+          check_secret "CSC_KEY_PASSWORD" "$CSC_KEY_PASSWORD"
+          check_secret "APPLE_ID" "$APPLE_ID"
+          check_secret "APPLE_APP_SPECIFIC_PASSWORD" "$APPLE_APP_SPECIFIC_PASSWORD"
+          check_secret "APPLE_TEAM_ID" "$APPLE_TEAM_ID"
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::Publication bloquée: secrets requis absents."
+            exit 1
+          fi
+
       - name: Download release metadata
         uses: actions/download-artifact@v4
         with:
@@ -173,6 +263,43 @@ jobs:
           echo "\n\n## Rollback\n" >> RELEASE_BODY.md
           cat ROLLBACK_NOTES.md >> RELEASE_BODY.md
 
+      - name: Dry-run rollback validation on non-prod artifacts
+        shell: bash
+        run: |
+          LIGHTAI_CURRENT_TAG='${{ needs.prepare.outputs.release_tag }}' \
+          LIGHTAI_ROLLBACK_TAG='${{ needs.prepare.outputs.rollback_tag || needs.prepare.outputs.release_tag }}' \
+          LIGHTAI_ROLLBACK_VALIDATE='true' \
+          LIGHTAI_SKIP_TAG_CHECK='true' \
+          LIGHTAI_ROLLBACK_FORMAT='json' \
+          node scripts/release/rollback-release.mjs > rollback-dry-run.json
+
+      - name: Build consolidated release report
+        shell: bash
+        run: |
+          cat > RELEASE_REPORT.md <<EOF
+          # Release Report
+
+          - Tag: \`${{ needs.prepare.outputs.release_tag }}\`
+          - Channel: \`${{ needs.prepare.outputs.channel }}\`
+          - Rollback target: \`${{ needs.prepare.outputs.rollback_tag || 'n/a' }}\`
+
+          ## Checks passed
+          - Project compatibility gate: \`${{ needs.release-gates.outputs.compatibility_status }}\`
+          - Release notes gate: \`${{ needs.release-gates.outputs.release_notes_status }}\`
+          - Signed build integrity gate: passed (validated in build-desktop)
+          - Rollback dry-run gate: passed
+
+          ## Checks failed
+          - None
+
+          ## Artifacts
+          - \`artifacts/macos/**\`
+          - \`artifacts/windows/**\`
+          - \`RELEASE_NOTES.md\`
+          - \`ROLLBACK_NOTES.md\`
+          - \`rollback-dry-run.json\`
+          EOF
+
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
@@ -182,3 +309,11 @@ jobs:
           files: |
             artifacts/macos/**
             artifacts/windows/**
+
+      - name: Upload release report
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-report
+          path: |
+            RELEASE_REPORT.md
+            rollback-dry-run.json
