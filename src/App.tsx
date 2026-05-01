@@ -7,6 +7,7 @@ import { HeroSection } from './components/layout/HeroSection';
 import { MarketingSections } from './components/layout/MarketingSections';
 import { Navbar } from './components/layout/Navbar';
 import { PlayerBar } from './components/layout/PlayerBar';
+import { ConflictResolutionPanel } from './components/ConflictResolutionPanel';
 import { AppStateProvider } from './context/AppStateContext';
 import { usePlaybackState } from './hooks/usePlaybackState';
 import { useSupabaseProfile } from './hooks/useSupabaseProfile';
@@ -21,8 +22,10 @@ import { buildIncidentReport, downloadIncidentReport, observability } from './li
 import { runtimeClient } from './lib/runtimeClient';
 import { supabase } from './lib/supabase';
 import { emitAiSuggestionEvent } from './lib/aiSuggestionTelemetry';
+import type { CollaborationConflict, GuidedMergeResolution } from './lib/collaborationStrategy';
 
 function App() {
+  const [activeConflict, setActiveConflict] = useState<CollaborationConflict<Record<string, unknown>> | null>(null);
   const [showVirtualStage, setShowVirtualStage] = useState(false);
   const [showEffectPanel, setShowEffectPanel] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
@@ -231,6 +234,15 @@ function App() {
     void applyPersistedConfiguration(configuration, 'history');
   }, [applyPersistedConfiguration]);
 
+  const handleConflictResolution = useCallback((resolution: GuidedMergeResolution<Record<string, unknown>>) => {
+    observability.info('collaboration', 'Operator resolved conflict from UI', {
+      fallbackToManual: resolution.fallbackToManual ?? false,
+      fields: Object.keys(resolution.fieldChoices),
+    });
+    setActiveConflict(null);
+    toast.success('Résolution de conflit enregistrée');
+  }, []);
+
 
 
   useEffect(() => {
@@ -341,6 +353,7 @@ function App() {
         </header>
 
         <MarketingSections />
+        <ConflictResolutionPanel conflict={activeConflict} onResolve={handleConflictResolution} />
       </div>
     </AppStateProvider>
   );
