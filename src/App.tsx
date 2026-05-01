@@ -20,6 +20,7 @@ import { effects } from './lib/effects';
 import { buildIncidentReport, downloadIncidentReport, observability } from './lib/observability';
 import { runtimeClient } from './lib/runtimeClient';
 import { supabase } from './lib/supabase';
+import { emitAiSuggestionEvent } from './lib/aiSuggestionTelemetry';
 
 function App() {
   const [showVirtualStage, setShowVirtualStage] = useState(false);
@@ -36,6 +37,16 @@ function App() {
     }
   }));
   const profileState = useSupabaseProfile();
+
+  const telemetryVersions = useMemo(() => ({
+    modelVersion: import.meta.env.VITE_MODEL_VERSION ?? 'unknown',
+    rulesetVersion: import.meta.env.VITE_RULESET_VERSION ?? 'v1',
+    runtimeVersion: import.meta.env.VITE_RUNTIME_VERSION ?? 'runtime-v1',
+    featureFlags: {
+      namingAssistant: true,
+      diagnosticsPanel: true,
+    },
+  }), []);
 
 
   useEffect(() => {
@@ -148,6 +159,20 @@ function App() {
           throw applyError;
         }
 
+        if (profileState.profile) {
+          await emitAiSuggestionEvent({
+            eventType: 'ai_suggestion_applied',
+            operatorId: profileState.profile.id,
+            sessionId: observability.snapshot().sessionId,
+            suggestionId: `preset-${source}-${normalized.effectName}`,
+            cueId: normalized.effectName,
+            context: { source },
+            ...telemetryVersions,
+            patchErrorCountBefore: 1,
+            patchErrorCountAfter: 0,
+          });
+        }
+
         await traceAuditEvent('APPLY_SUCCESS', {
           effectName: normalized.effectName,
           source,
@@ -160,6 +185,20 @@ function App() {
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown configuration error';
 
+        if (profileState.profile) {
+          await emitAiSuggestionEvent({
+            eventType: 'ai_suggestion_rejected',
+            operatorId: profileState.profile.id,
+            sessionId: observability.snapshot().sessionId,
+            suggestionId: `preset-${source}-${fallbackEffect}`,
+            cueId: fallbackEffect,
+            context: { source, reason: message },
+            ...telemetryVersions,
+            patchErrorCountBefore: 1,
+            patchErrorCountAfter: 1,
+          });
+        }
+
         await traceAuditEvent('APPLY_FAILED', {
           effectName: fallbackEffect,
           source,
@@ -171,7 +210,7 @@ function App() {
         toast.error(`Load failed: ${message}`);
       }
     },
-    [traceAuditEvent]
+    [profileState.profile, telemetryVersions, traceAuditEvent]
   );
 
   const playbackState = usePlaybackState({
@@ -192,6 +231,26 @@ function App() {
     void applyPersistedConfiguration(configuration, 'history');
   }, [applyPersistedConfiguration]);
 
+
+
+  useEffect(() => {
+    return () => {
+      if (!profileState.profile) {
+        return;
+      }
+      void emitAiSuggestionEvent({
+        eventType: 'ai_suggestion_session_outcome',
+        operatorId: profileState.profile.id,
+        sessionId: observability.snapshot().sessionId,
+        suggestionId: 'session-summary',
+        context: {
+          logs: observability.snapshot().logs.length,
+          droppedFrames: observability.snapshot().metrics.droppedFrames,
+        },
+        ...telemetryVersions,
+      });
+    };
+  }, [profileState.profile, telemetryVersions]);
 
   const exportIncidentReport = useCallback(
     (scope: 'private' | 'public') => {

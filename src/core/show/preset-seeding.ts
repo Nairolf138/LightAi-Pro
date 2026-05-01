@@ -277,6 +277,11 @@ export const seedGroupsAndPalettes = (
 export const applyNamingAssistant = async (
   seed: SeededPaletteSet,
   assistant?: NamingAssistant,
+  onSuggestionEvent?: (event: {
+    eventType: 'ai_suggestion_shown' | 'ai_suggestion_applied' | 'ai_suggestion_edited' | 'ai_suggestion_rejected';
+    suggestionId: string;
+    context: Record<string, unknown>;
+  }) => Promise<void> | void,
 ): Promise<SeededPaletteSet> => {
   if (!assistant) {
     return seed;
@@ -284,6 +289,13 @@ export const applyNamingAssistant = async (
 
   const groups = await Promise.all(
     seed.groups.map(async (group) => {
+      const suggestionId = `group-${group.id}`;
+      await onSuggestionEvent?.({
+        eventType: 'ai_suggestion_shown',
+        suggestionId,
+        context: { kind: 'group', baseName: group.name },
+      });
+
       const suggestion = await assistant.suggestName({
         kind: 'group',
         baseName: group.name,
@@ -291,9 +303,17 @@ export const applyNamingAssistant = async (
         category: group.axis,
       });
 
+      const nextName = suggestion.cleanedName || suggestion.readableName || group.name;
+      const eventType = nextName === group.name ? 'ai_suggestion_rejected' : 'ai_suggestion_applied';
+      await onSuggestionEvent?.({
+        eventType,
+        suggestionId,
+        context: { kind: 'group', before: group.name, after: nextName },
+      });
+
       return {
         ...group,
-        name: suggestion.cleanedName || suggestion.readableName || group.name,
+        name: nextName,
       };
     }),
   );
@@ -301,6 +321,12 @@ export const applyNamingAssistant = async (
   const palettes = await Promise.all(
     seed.palettes.map(async (palette) => {
       const fixtureIds = palette.values.map((entry) => entry.fixtureId).filter((id): id is string => Boolean(id));
+      const suggestionId = `palette-${palette.id}`;
+      await onSuggestionEvent?.({
+        eventType: 'ai_suggestion_shown',
+        suggestionId,
+        context: { kind: 'palette', baseName: palette.name },
+      });
       const suggestion = await assistant.suggestName({
         kind: 'palette',
         baseName: palette.name,
@@ -308,9 +334,17 @@ export const applyNamingAssistant = async (
         category: palette.kind,
       });
 
+      const nextName = suggestion.cleanedName || suggestion.readableName || palette.name;
+      const eventType = nextName === palette.name ? 'ai_suggestion_edited' : 'ai_suggestion_applied';
+      await onSuggestionEvent?.({
+        eventType,
+        suggestionId,
+        context: { kind: 'palette', before: palette.name, after: nextName },
+      });
+
       return {
         ...palette,
-        name: suggestion.cleanedName || suggestion.readableName || palette.name,
+        name: nextName,
       };
     }),
   );
