@@ -6,6 +6,7 @@ import './unit/brief-planner.unit.test';
 import './unit/console-conversion.unit.test';
 import './integration/protocols.integration.test';
 import './integration/ai-suggestion-events.integration.test';
+import './integration/collaboration-concurrency.integration.test';
 import './e2e/show-workflow.e2e.test';
 import './perf/performance.nonregression.test';
 import { run } from './harness';
