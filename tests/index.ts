@@ -1,5 +1,6 @@
 import './unit/lighting-engine.unit.test';
 import './unit/patch-importer.unit.test';
+import './unit/patch-audit.unit.test';
 import './unit/preset-seeding.unit.test';
 import './unit/brief-planner.unit.test';
 import './unit/console-conversion.unit.test';

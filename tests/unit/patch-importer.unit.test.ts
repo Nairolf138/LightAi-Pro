@@ -5,7 +5,7 @@ import {
   parsePatchSource,
 } from '../../src/core/fixtures/patch-importer';
 import { FixtureProfileRegistry } from '../../src/core/fixtures/registry';
-
+import { patchAuditClient } from '../../src/lib/patchAuditClient';
 const createRegistry = (): FixtureProfileRegistry => {
   const registry = new FixtureProfileRegistry();
   registry.importProfiles([
@@ -101,4 +101,22 @@ test('Sortie Show Graph canonique générée depuis patch valide', () => {
   );
   assert.equal(showGraph.dmx.fixtureModes.length, 1);
   assert.ok(showGraph.attributesCatalog.some((attribute) => attribute.id === 'intensity.dimmer'));
+});
+
+test('Patch importer + audit client: sortie standardisée interactive', async () => {
+  const registry = createRegistry();
+  const parsed = parsePatchSource(
+    [
+      'id,name,profileId,modeId,universe,address',
+      'fx-1,Front Spot,spot-200,mode-8ch,1,1',
+      'fx-2,Back Spot,spot-200,mode-8ch,1,2',
+    ].join('\n'),
+    registry,
+  );
+
+  const audited = await patchAuditClient.audit(parsed.fixtures, registry);
+  assert.ok(Array.isArray(audited.issues));
+  assert.ok(Array.isArray(audited.warnings));
+  assert.ok(Array.isArray(audited.propositions));
+  assert.ok(audited.durationMs < 2000);
 });
