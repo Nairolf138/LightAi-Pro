@@ -15,6 +15,7 @@ import './integration/ai-telemetry-schema-migration.integration.test';
 import './integration/collaboration-concurrency.integration.test';
 import './integration/live-safety-traceability.integration.test';
 import './integration/runtime/network-harness.integration.test';
+import './integration/runtime/time-sync.integration.test';
 import './e2e/show-workflow.e2e.test';
 import './perf/performance.nonregression.test';
 import { run } from './harness';
