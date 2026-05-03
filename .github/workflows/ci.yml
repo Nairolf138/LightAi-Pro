@@ -28,6 +28,9 @@ jobs:
       - name: Validate IPC contract governance
         run: node scripts/check-ipc-contract-governance.mjs
 
+      - name: Check AI eval report policy
+        run: npm run ci:ai-report
+
       - name: Lint
         run: npm run lint
 

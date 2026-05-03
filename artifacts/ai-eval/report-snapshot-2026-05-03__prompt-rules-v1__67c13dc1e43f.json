@@ -1,0 +1,30 @@
+{
+  "runSignature": "snapshot-2026-05-03__prompt-rules-v1__67c13dc1e43f",
+  "generatedAt": "2026-05-03T13:02:31.829Z",
+  "codeVersion": "67c13dc1e43f22d91419885d47993e53bdb92cf0",
+  "promptRulesVersion": "prompt-rules-v1",
+  "datasetSnapshotId": "snapshot-2026-05-03",
+  "metrics": {
+    "heuristics": {
+      "tp": 1,
+      "tn": 1,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1,
+      "recall": 1,
+      "accuracy": 1,
+      "f1": 1
+    },
+    "llmBaseline": {
+      "tp": 1,
+      "tn": 1,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1,
+      "recall": 1,
+      "accuracy": 1,
+      "f1": 1
+    },
+    "sampleSize": 2
+  }
+}
