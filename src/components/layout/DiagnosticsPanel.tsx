@@ -9,6 +9,7 @@ export function DiagnosticsPanel() {
   }
 
   const { snapshot, runtimeStatus } = diagnostics;
+  const safetyLogs = snapshot.logs.filter((log) => log.module === 'safety-monitor' || log.tags?.includes('safety')).slice(0, 20);
 
   return (
     <aside className="fixed left-6 top-24 bottom-6 w-[28rem] bg-black/90 border border-yellow-400/40 rounded-xl p-5 overflow-auto z-50">
@@ -39,6 +40,20 @@ export function DiagnosticsPanel() {
           <div>Latency p95: {snapshot.metrics.frameLatencyMsP95} ms</div>
           <div>Dropped frames: {snapshot.metrics.droppedFrames}</div>
           <div>Total frames: {snapshot.metrics.totalFrames}</div>
+        </div>
+
+
+        <div className="bg-gray-900/80 rounded-lg p-3">
+          <div className="font-medium mb-2">AI / Safety Log (live)</div>
+          <div className="space-y-2 max-h-44 overflow-auto pr-1">
+            {safetyLogs.map((log) => (
+              <div key={log.id} className="border border-amber-700/60 rounded-md p-2">
+                <div className="text-xs text-gray-400">{new Date(log.timestamp).toLocaleTimeString()} • {log.level}</div>
+                <div>{log.message}</div>
+              </div>
+            ))}
+            {safetyLogs.length === 0 && <div className="text-gray-400">Aucun événement safety pour le moment.</div>}
+          </div>
         </div>
 
         <div className="bg-gray-900/80 rounded-lg p-3">

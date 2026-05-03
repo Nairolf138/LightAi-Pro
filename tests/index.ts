@@ -7,6 +7,7 @@ import './unit/console-conversion.unit.test';
 import './unit/live-safety.unit.test';
 import './unit/ai-orchestrator.unit.test';
 import './unit/copilot-workspace.unit.test';
+import './unit/safety-monitor.unit.test';
 import './contracts/ai-orchestrator.contract.test';
 import './integration/protocols.integration.test';
 import './integration/ai-suggestion-events.integration.test';

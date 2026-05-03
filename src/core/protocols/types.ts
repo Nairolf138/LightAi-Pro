@@ -46,12 +46,22 @@ export interface SimulatorDriverConfig {
   readonly logFrames?: boolean;
 }
 
+export interface ShowSafetyConfig {
+  readonly profileId?: string;
+  readonly forbidStrobe?: boolean;
+  readonly enforceBlackout?: boolean;
+  readonly maxDeltaPerFrame?: number;
+  readonly forbiddenAttributes?: ReadonlyArray<string>;
+  readonly zoneIntensityMax?: Readonly<Record<string, number>>;
+}
+
 export interface ShowOutputConfig {
   readonly activeDriver: DriverKind;
   readonly artnet?: ArtNetDriverConfig;
   readonly dmx?: DmxDriverConfig;
   readonly osc?: OscDriverConfig;
   readonly simulator?: SimulatorDriverConfig;
+  readonly safety?: ShowSafetyConfig;
 }
 
 export const defaultShowOutputConfig: ShowOutputConfig = {
