@@ -4,6 +4,7 @@ import './unit/patch-audit.unit.test';
 import './unit/preset-seeding.unit.test';
 import './unit/brief-planner.unit.test';
 import './unit/console-conversion.unit.test';
+import './unit/eos-bridge.unit.test';
 import './unit/live-safety.unit.test';
 import './unit/ai-orchestrator.unit.test';
 import './unit/copilot-workspace.unit.test';
