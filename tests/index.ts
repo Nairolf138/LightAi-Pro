@@ -5,6 +5,8 @@ import './unit/preset-seeding.unit.test';
 import './unit/brief-planner.unit.test';
 import './unit/console-conversion.unit.test';
 import './unit/live-safety.unit.test';
+import './unit/ai-orchestrator.unit.test';
+import './contracts/ai-orchestrator.contract.test';
 import './integration/protocols.integration.test';
 import './integration/ai-suggestion-events.integration.test';
 import './integration/collaboration-concurrency.integration.test';
