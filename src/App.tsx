@@ -42,10 +42,10 @@ function App() {
   }));
   const profileState = useSupabaseProfile();
 
-  const telemetryVersions = useMemo(() => ({
-    modelVersion: import.meta.env.VITE_MODEL_VERSION ?? 'unknown',
-    rulesetVersion: import.meta.env.VITE_RULESET_VERSION ?? 'v1',
-    runtimeVersion: import.meta.env.VITE_RUNTIME_VERSION ?? 'runtime-v1',
+  const telemetryContext = useMemo(() => ({
+    eventVersion: '1.0',
+    model: import.meta.env.VITE_MODEL_VERSION ?? 'unknown',
+    variant: import.meta.env.VITE_RULESET_VERSION ?? 'default',
     featureFlags: {
       namingAssistant: true,
       diagnosticsPanel: true,
@@ -169,9 +169,12 @@ function App() {
             operatorId: profileState.profile.id,
             sessionId: observability.snapshot().sessionId,
             suggestionId: `preset-${source}-${normalized.effectName}`,
-            cueId: normalized.effectName,
+            showId: observability.snapshot().showId,
+            model: telemetryContext.model,
+            variant: telemetryContext.variant,
+            outcome: 'accepted',
             context: { source },
-            ...telemetryVersions,
+            ...telemetryContext,
             patchErrorCountBefore: 1,
             patchErrorCountAfter: 0,
           });
@@ -195,9 +198,12 @@ function App() {
             operatorId: profileState.profile.id,
             sessionId: observability.snapshot().sessionId,
             suggestionId: `preset-${source}-${fallbackEffect}`,
-            cueId: fallbackEffect,
+            showId: observability.snapshot().showId,
+            model: telemetryContext.model,
+            variant: telemetryContext.variant,
+            outcome: message.toLowerCase().includes('fallback') ? 'fallback_provider' : 'rejected',
             context: { source, reason: message },
-            ...telemetryVersions,
+            ...telemetryContext,
             patchErrorCountBefore: 1,
             patchErrorCountAfter: 1,
           });
@@ -214,7 +220,7 @@ function App() {
         toast.error(`Load failed: ${message}`);
       }
     },
-    [profileState.profile, telemetryVersions, traceAuditEvent]
+    [profileState.profile, telemetryContext, traceAuditEvent]
   );
 
   const playbackState = usePlaybackState({
@@ -240,9 +246,24 @@ function App() {
       fallbackToManual: resolution.fallbackToManual ?? false,
       fields: Object.keys(resolution.fieldChoices),
     });
+    if (profileState.profile) {
+      void emitAiSuggestionEvent({
+        eventType: 'ai_suggestion_edited',
+        eventVersion: telemetryContext.eventVersion,
+        operatorId: profileState.profile.id,
+        sessionId: observability.snapshot().sessionId,
+        showId: observability.snapshot().showId,
+        suggestionId: 'conflict-resolution',
+        model: telemetryContext.model,
+        variant: telemetryContext.variant,
+        outcome: resolution.fallbackToManual ? 'manual_override' : 'accepted_partial',
+        context: { fields: Object.keys(resolution.fieldChoices) },
+        featureFlags: telemetryContext.featureFlags,
+      });
+    }
     setActiveConflict(null);
     toast.success('Résolution de conflit enregistrée');
-  }, []);
+  }, [profileState.profile, telemetryContext]);
 
 
 
@@ -252,18 +273,22 @@ function App() {
         return;
       }
       void emitAiSuggestionEvent({
-        eventType: 'ai_suggestion_session_outcome',
+        eventType: 'ai_suggestion_edited',
         operatorId: profileState.profile.id,
         sessionId: observability.snapshot().sessionId,
+        showId: observability.snapshot().showId,
+        model: telemetryContext.model,
+        variant: telemetryContext.variant,
+        outcome: 'manual_override',
         suggestionId: 'session-summary',
         context: {
           logs: observability.snapshot().logs.length,
           droppedFrames: observability.snapshot().metrics.droppedFrames,
         },
-        ...telemetryVersions,
+        ...telemetryContext,
       });
     };
-  }, [profileState.profile, telemetryVersions]);
+  }, [profileState.profile, telemetryContext]);
 
   const exportIncidentReport = useCallback(
     (scope: 'private' | 'public') => {

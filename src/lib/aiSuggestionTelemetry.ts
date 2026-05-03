@@ -5,19 +5,30 @@ export type AiSuggestionEventType =
   | 'ai_suggestion_shown'
   | 'ai_suggestion_applied'
   | 'ai_suggestion_edited'
-  | 'ai_suggestion_rejected'
-  | 'ai_suggestion_session_outcome';
+  | 'ai_suggestion_rejected';
+
+export type AiSuggestionOutcome =
+  | 'accepted'
+  | 'accepted_partial'
+  | 'edited'
+  | 'rejected'
+  | 'rolled_back'
+  | 'manual_override'
+  | 'fallback_provider'
+  | 'provider_error'
+  | 'shown';
 
 export interface AiSuggestionEventInput {
   eventType: AiSuggestionEventType;
+  eventVersion: string;
   operatorId: string;
   sessionId: string;
+  showId: string;
   suggestionId: string;
-  cueId?: string;
+  model: string;
+  variant: string;
+  outcome: AiSuggestionOutcome;
   context?: Record<string, unknown>;
-  modelVersion: string;
-  rulesetVersion: string;
-  runtimeVersion: string;
   featureFlags: Record<string, boolean>;
   latencyMs?: number;
   patchErrorCountBefore?: number;
@@ -44,13 +55,14 @@ export const emitAiSuggestionEvent = async (input: AiSuggestionEventInput): Prom
     {
       event_type: input.eventType,
       operator_pseudo_id: operatorPseudoId,
+      event_version: input.eventVersion,
       session_id: input.sessionId,
+      show_id: input.showId,
       suggestion_id: input.suggestionId,
-      cue_id: input.cueId ?? null,
+      model: input.model,
+      variant: input.variant,
+      outcome: input.outcome,
       context: input.context ?? {},
-      model_version: input.modelVersion,
-      ruleset_version: input.rulesetVersion,
-      runtime_version: input.runtimeVersion,
       feature_flags: input.featureFlags,
       latency_ms: input.latencyMs ?? null,
       patch_error_count_before: input.patchErrorCountBefore ?? null,
