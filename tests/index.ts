@@ -10,6 +10,7 @@ import './unit/copilot-workspace.unit.test';
 import './contracts/ai-orchestrator.contract.test';
 import './integration/protocols.integration.test';
 import './integration/ai-suggestion-events.integration.test';
+import './integration/ai-telemetry-schema-migration.integration.test';
 import './integration/collaboration-concurrency.integration.test';
 import './integration/live-safety-traceability.integration.test';
 import './e2e/show-workflow.e2e.test';
