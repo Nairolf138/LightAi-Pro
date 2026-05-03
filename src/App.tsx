@@ -8,6 +8,7 @@ import { MarketingSections } from './components/layout/MarketingSections';
 import { Navbar } from './components/layout/Navbar';
 import { PlayerBar } from './components/layout/PlayerBar';
 import { ConflictResolutionPanel } from './components/ConflictResolutionPanel';
+import { CopilotWorkspace } from './features/copilot/CopilotWorkspace';
 import { AppStateProvider } from './context/AppStateContext';
 import { usePlaybackState } from './hooks/usePlaybackState';
 import { useSupabaseProfile } from './hooks/useSupabaseProfile';
@@ -353,6 +354,9 @@ function App() {
         </header>
 
         <MarketingSections />
+        <main className="mx-auto w-full max-w-6xl px-6 pb-16">
+          <CopilotWorkspace />
+        </main>
         <ConflictResolutionPanel conflict={activeConflict} onResolve={handleConflictResolution} />
       </div>
     </AppStateProvider>
