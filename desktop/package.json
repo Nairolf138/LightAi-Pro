@@ -5,15 +5,16 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "main": "main.ts",
+  "main": "dist/main.js",
   "scripts": {
     "dev": "electron .",
-    "build": "electron-builder --config ./electron-builder.yml",
+    "build": "npm run compile && electron-builder --config ./electron-builder.yml",
     "sign:build": "node ./scripts/sign-build.mjs",
     "build:mac": "electron-builder --mac --config ./electron-builder.yml",
     "build:win": "electron-builder --win --config ./electron-builder.yml",
     "build:dir": "electron-builder --dir --config ./electron-builder.yml",
-    "release:compat": "node ../scripts/release/verify-project-compat.mjs"
+    "release:compat": "node ../scripts/release/verify-project-compat.mjs",
+    "compile": "tsc -p tsconfig.json"
   },
   "devDependencies": {
     "electron": "^31.7.7",

@@ -5,7 +5,14 @@
     "moduleResolution": "NodeNext",
     "strict": true,
     "skipLibCheck": true,
-    "types": ["node", "electron"]
+    "types": [
+      "node",
+      "electron"
+    ],
+    "rootDir": ".",
+    "outDir": "dist"
   },
-  "include": ["./**/*.ts"]
+  "include": [
+    "./**/*.ts"
+  ]
 }

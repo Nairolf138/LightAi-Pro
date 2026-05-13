@@ -1,4 +1,4 @@
-import type { DeviceProtocol, SendFrameRequest } from '../ipc/contracts';
+import type { DeviceProtocol, SendFrameRequest } from '../ipc/contracts.js';
 
 export type HardwareAdapterHealth = {
   connected: boolean;
