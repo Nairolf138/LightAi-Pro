@@ -1,5 +1,7 @@
 {
   "name": "lightai-pro-desktop",
+  "description": "Desktop shell for LightAI Pro lighting control.",
+  "author": "NairolfConcept",
   "private": true,
   "version": "0.1.0",
   "type": "module",
