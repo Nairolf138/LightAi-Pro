@@ -21,9 +21,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            desktop/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci
+          npm ci --prefix desktop
 
       - name: Validate IPC contract governance
         run: node scripts/check-ipc-contract-governance.mjs
@@ -34,8 +39,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Build
-        run: npm run build
+      - name: Validate frontend and desktop package
+        run: |
+          npm run build
+          npm run compile --prefix desktop
+          npm run build:dir --prefix desktop
 
       - name: Test
         run: npm run test:ci
