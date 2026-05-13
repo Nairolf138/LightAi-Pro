@@ -1,4 +1,4 @@
-import { IPC_CONTRACT_VERSION, type ConnectDeviceRequest, type HardwareDevice, type RuntimeStatus, type SendFrameRequest } from '../ipc/contracts';
+import { IPC_CONTRACT_VERSION, type ConnectDeviceRequest, type HardwareDevice, type RuntimeStatus, type SendFrameRequest } from '../ipc/contracts.js';
 import {
   ArtnetAdapter,
   DmxUsbAdapter,
@@ -7,7 +7,7 @@ import {
   type HardwareAdapter,
   type HardwareAdapterHealth,
   type ReconnectState
-} from './hardwareAdapters';
+} from './hardwareAdapters.js';
 
 const mockDevices: HardwareDevice[] = [
   { id: 'dmx-usb-001', name: 'USB DMX Interface', protocol: 'dmx', online: true },

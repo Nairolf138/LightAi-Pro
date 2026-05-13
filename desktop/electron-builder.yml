@@ -5,13 +5,10 @@ directories:
   buildResources: ./build
 files:
   - ../dist/**
-  - ./main.ts
-  - ./preload.ts
-  - ./ipc/**
-  - ./native/**
+  - ./dist/**
   - ./security/**
 extraMetadata:
-  main: main.ts
+  main: dist/main.js
 artifactName: "${productName}-${version}-${os}-${arch}-${channel}.${ext}"
 buildDependenciesFromSource: false
 asar: true

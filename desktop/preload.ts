@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { ipcChannels } from './ipc/contracts';
-import type { NativeIpcApi } from './ipc/contracts';
+import { ipcChannels } from './ipc/contracts.js';
+import type { NativeIpcApi } from './ipc/contracts.js';
 
 const api: NativeIpcApi = {
   listDevices: () => ipcRenderer.invoke(ipcChannels.listDevices),

@@ -5,9 +5,9 @@ import {
   assertVaultSecretKeyRequest,
   assertVaultSecretRequest,
   ipcChannels
-} from './contracts';
-import type { HardwareRuntime } from '../native/hardwareRuntime';
-import { vaultDeleteSecret, vaultGetSecret, vaultSetSecret } from '../security/secretVault';
+} from './contracts.js';
+import type { HardwareRuntime } from '../native/hardwareRuntime.js';
+import { vaultDeleteSecret, vaultGetSecret, vaultSetSecret } from '../security/secretVault.js';
 
 export function registerIpcHandlers(runtime: HardwareRuntime): void {
   ipcMain.handle(ipcChannels.listDevices, () => runtime.listDevices());

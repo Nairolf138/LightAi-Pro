@@ -1,16 +1,16 @@
 import { app, BrowserWindow, dialog, session } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import { registerIpcHandlers } from './ipc/handlers';
-import { HardwareRuntime } from './native/hardwareRuntime';
-import { verifyRuntimeIntegrity } from './security/integrity';
-import { checkProjectCompatibility, configureAutoUpdate } from './release/updatePolicy';
+import { registerIpcHandlers } from './ipc/handlers.js';
+import { HardwareRuntime } from './native/hardwareRuntime.js';
+import { verifyRuntimeIntegrity } from './security/integrity.js';
+import { checkProjectCompatibility, configureAutoUpdate } from './release/updatePolicy.js';
 
 const runtime = new HardwareRuntime();
 
 
 function maybeCheckProjectCompatibility(): void {
   const projectFormatVersion = Number(process.env.LIGHTAI_PROJECT_FORMAT_VERSION ?? 1);
-  const compatibility = checkProjectCompatibility(projectFormatVersion);
+  const compatibility = checkProjectCompatibility(app.getVersion(), projectFormatVersion);
 
   if (!compatibility.ok) {
     throw new Error(compatibility.reason ?? 'Project compatibility check failed.');
@@ -68,7 +68,7 @@ function createWindow(): void {
     width: 1440,
     height: 900,
     webPreferences: {
-      preload: new URL('./preload.ts', import.meta.url).pathname,
+      preload: new URL('./preload.js', import.meta.url).pathname,
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
