@@ -14,11 +14,16 @@ if (existsSync(electronBin)) {
 
 console.log('Desktop dependencies are missing. Installing dependencies in ./desktop...');
 
-const npmExecutable = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-const install = spawnSync(npmExecutable, ['install', '--prefix', desktopDir], {
+const npmInstallArgs = ['install', '--prefix', desktopDir];
+const npmExecPath = process.env.npm_execpath;
+const canRunNpmCliWithNode = npmExecPath?.endsWith('.js');
+const npmExecutable = canRunNpmCliWithNode ? process.execPath : 'npm';
+const npmArgs = canRunNpmCliWithNode ? [npmExecPath, ...npmInstallArgs] : npmInstallArgs;
+
+const install = spawnSync(npmExecutable, npmArgs, {
   cwd: repoRoot,
   stdio: 'inherit',
-  shell: false,
+  shell: process.platform === 'win32' && !canRunNpmCliWithNode,
 });
 
 if (install.error) {
