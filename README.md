@@ -17,15 +17,19 @@ LightAI-Pro est l'application du futur de conduite lumière de scènes (web + de
 - Durcissement de la chaîne release desktop selon les environnements de distribution.
 - Stabilisation complète des workflows collaboration Supabase en production.
 
-## Démarrage local
+## Développement local
 
-Avant de lancer l'application en local, copiez le fichier d'exemple d'environnement :
+### Mode web
+
+Installez les dépendances, copiez le fichier d'exemple d'environnement, puis lancez le serveur de développement Vite :
 
 ```bash
+npm install
 cp .env.example .env.local
+npm run dev
 ```
 
-Renseignez ensuite les variables Supabase dans `.env.local` :
+Renseignez les variables Supabase dans `.env.local` si nécessaire :
 
 ```env
 VITE_SUPABASE_URL=
@@ -34,11 +38,27 @@ VITE_SUPABASE_ANON_KEY=
 
 Les variables préfixées `VITE_` sont injectées côté navigateur par Vite.
 
-Relancez enfin le serveur de développement :
+### Mode desktop en développement
+
+Lancez d'abord le serveur Vite pour servir l'interface web :
 
 ```bash
 npm run dev
 ```
+
+Dans un autre terminal, démarrez ensuite le runtime desktop Electron :
+
+```bash
+npm run desktop:dev
+```
+
+Par défaut, `desktop/main.ts` charge l'interface depuis :
+
+```txt
+http://localhost:5173
+```
+
+Cette URL est lue via la variable `LIGHTAI_UI_URL`. Le serveur Vite doit donc être lancé avant le runtime desktop, ou au minimum en parallèle, pour que la fenêtre Electron puisse charger l'application.
 
 ## Documentation
 
