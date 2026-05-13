@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { app, BrowserWindow, dialog, session } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import { registerIpcHandlers } from './ipc/handlers.js';
@@ -82,8 +83,13 @@ function createWindow(): void {
     event.preventDefault();
   });
 
-  const rendererUrl = process.env.LIGHTAI_UI_URL ?? 'http://localhost:5173';
-  void mainWindow.loadURL(rendererUrl);
+  if (app.isPackaged) {
+    const packagedIndexHtml = path.join(app.getAppPath(), 'dist', 'index.html');
+    void mainWindow.loadFile(packagedIndexHtml);
+  } else {
+    const rendererUrl = process.env.LIGHTAI_UI_URL ?? 'http://localhost:5173';
+    void mainWindow.loadURL(rendererUrl);
+  }
 }
 
 app.whenReady().then(async () => {
