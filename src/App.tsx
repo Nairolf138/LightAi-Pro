@@ -21,6 +21,7 @@ import {
 import { effects } from './lib/effects';
 import { buildIncidentReport, downloadIncidentReport, observability } from './lib/observability';
 import { runtimeClient } from './lib/runtimeClient';
+import { isWebRuntime } from './lib/runtimeEnvironment';
 import { SUPABASE_DISABLED_MESSAGE, supabase } from './lib/supabase';
 import { emitAiSuggestionEvent } from './lib/aiSuggestionTelemetry';
 import type { CollaborationConflict, GuidedMergeResolution } from './lib/collaborationStrategy';
@@ -78,6 +79,11 @@ function App() {
     };
 
     pollStatus();
+
+    if (isWebRuntime) {
+      return undefined;
+    }
+
     const id = window.setInterval(pollStatus, 1000);
     return () => clearInterval(id);
   }, []);

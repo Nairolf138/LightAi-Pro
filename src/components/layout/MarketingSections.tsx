@@ -11,6 +11,7 @@ import {
   Wand2,
   Zap
 } from 'lucide-react';
+import { DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE, isWebRuntime } from '../../lib/runtimeEnvironment';
 
 const features = [
   {
@@ -31,12 +32,14 @@ const features = [
   {
     icon: <Network className="w-8 h-8 text-yellow-400" />,
     title: 'Exécution distribuée (beta)',
-    description: 'Traitement multi-processus disponible sur certains scénarios runtime.'
+    description: 'Traitement multi-processus disponible sur certains scénarios runtime.',
+    desktopOnly: true
   },
   {
     icon: <Cpu className="w-8 h-8 text-yellow-400" />,
     title: 'Accélération matérielle (selon machine)',
-    description: 'Utilisation des capacités matérielles locales quand disponibles.'
+    description: 'Utilisation des capacités matérielles locales quand disponibles.',
+    desktopOnly: true
   },
   {
     icon: <Globe className="w-8 h-8 text-yellow-400" />,
@@ -56,7 +59,8 @@ const features = [
   {
     icon: <Zap className="w-8 h-8 text-yellow-400" />,
     title: 'Traitement temps réel',
-    description: 'Pilotage temps réel optimisé; performances dépendantes du matériel et des protocoles.'
+    description: 'Pilotage temps réel optimisé; performances dépendantes du matériel et des protocoles DMX natifs.',
+    desktopOnly: true
   }
 ];
 
@@ -67,16 +71,35 @@ export function MarketingSections() {
         <div className="max-w-7xl mx-auto">
           <h2 className="text-5xl font-bold text-center mb-16 gradient-text">Fonctionnalités produit</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature) => (
-              <div
-                key={feature.title}
-                className="card-3d bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 hover:bg-gray-800/70 transition-all cursor-pointer"
-              >
-                <div className="mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-400">{feature.description}</p>
-              </div>
-            ))}
+            {features.map((feature) => {
+              const isDisabled = isWebRuntime && feature.desktopOnly;
+
+              return (
+                <div
+                  key={feature.title}
+                  className={`card-3d bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 transition-all ${
+                    isDisabled ? 'cursor-not-allowed opacity-55' : 'cursor-pointer hover:bg-gray-800/70'
+                  }`}
+                  aria-disabled={isDisabled}
+                >
+                  <div className="mb-4">{feature.icon}</div>
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <h3 className="text-xl font-semibold">{feature.title}</h3>
+                    {feature.desktopOnly && (
+                      <span className="rounded-full border border-yellow-400/40 px-2 py-0.5 text-xs text-yellow-200">
+                        Desktop
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-400">{feature.description}</p>
+                  {isDisabled && (
+                    <p className="mt-3 rounded-lg border border-yellow-400/40 bg-yellow-400/10 p-2 text-xs text-yellow-100">
+                      {DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

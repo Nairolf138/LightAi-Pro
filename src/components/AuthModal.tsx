@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { SUPABASE_DISABLED_MESSAGE, supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { runtimeClient } from '../lib/runtimeClient';
+import { DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE, isDesktopRuntime, isWebRuntime } from '../lib/runtimeEnvironment';
 
 type AuthModalProps = {
   isOpen: boolean;
@@ -72,9 +73,15 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [failedAttempts, setFailedAttempts] = useState(0);
 
   const passwordPolicy = useMemo(() => evaluatePasswordPolicy(password, email), [password, email]);
+  const canUseSecureVault = isDesktopRuntime;
 
   useEffect(() => {
     if (!isOpen) {
+      return;
+    }
+
+    if (!canUseSecureVault) {
+      setRememberSecurely(false);
       return;
     }
 
@@ -99,7 +106,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     return () => {
       isCancelled = true;
     };
-  }, [isOpen]);
+  }, [canUseSecureVault, isOpen]);
 
   if (!isOpen) return null;
 
@@ -131,6 +138,10 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   }
 
   const persistCredentials = async (): Promise<void> => {
+    if (!canUseSecureVault) {
+      return;
+    }
+
     if (rememberSecurely) {
       await runtimeClient.vaultSetSecret({
         key: CREDENTIALS_VAULT_KEY,
@@ -273,14 +284,22 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
           )}
 
-          <label className="flex items-center gap-2 text-sm text-gray-300">
-            <input
-              type="checkbox"
-              checked={rememberSecurely}
-              onChange={(e) => setRememberSecurely(e.target.checked)}
-            />
-            Remember credentials in secure local vault
-          </label>
+          <div className="space-y-2">
+            <label className={`flex items-center gap-2 text-sm ${canUseSecureVault ? 'text-gray-300' : 'text-gray-500'}`}>
+              <input
+                type="checkbox"
+                checked={canUseSecureVault && rememberSecurely}
+                disabled={!canUseSecureVault}
+                onChange={(e) => setRememberSecurely(e.target.checked)}
+              />
+              Remember credentials in secure local vault
+            </label>
+            {isWebRuntime && (
+              <div className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 p-3 text-xs text-yellow-100">
+                {DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE}
+              </div>
+            )}
+          </div>
 
           {formError && (
             <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-300">

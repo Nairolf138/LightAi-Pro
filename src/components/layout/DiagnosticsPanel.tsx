@@ -1,5 +1,6 @@
 import { AlertTriangle, Download, Shield } from 'lucide-react';
 import { useAppState } from '../../context/AppStateContext';
+import { DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE, isWebRuntime } from '../../lib/runtimeEnvironment';
 
 export function DiagnosticsPanel() {
   const { diagnostics } = useAppState();
@@ -26,12 +27,20 @@ export function DiagnosticsPanel() {
         </div>
 
         <div className="bg-gray-900/80 rounded-lg p-3 space-y-1">
-          <div className="font-medium">Runtime</div>
-          <div>Ready: {runtimeStatus.ready ? 'yes' : 'no'}</div>
-          <div>Protocol: {runtimeStatus.protocol ?? 'none'}</div>
-          <div>Queue: {runtimeStatus.metrics.protocolQueueDepth}</div>
-          <div>Queue max: {runtimeStatus.metrics.protocolQueueHighWatermark}</div>
-          <div>Dropped protocol frames: {runtimeStatus.metrics.protocolDroppedFrames}</div>
+          <div className="font-medium">Runtime Electron</div>
+          {isWebRuntime ? (
+            <div className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 p-3 text-xs text-yellow-100">
+              {DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE}
+            </div>
+          ) : (
+            <>
+              <div>Ready: {runtimeStatus.ready ? 'yes' : 'no'}</div>
+              <div>Protocol: {runtimeStatus.protocol ?? 'none'}</div>
+              <div>Queue: {runtimeStatus.metrics.protocolQueueDepth}</div>
+              <div>Queue max: {runtimeStatus.metrics.protocolQueueHighWatermark}</div>
+              <div>Dropped protocol frames: {runtimeStatus.metrics.protocolDroppedFrames}</div>
+            </>
+          )}
         </div>
 
         <div className="bg-gray-900/80 rounded-lg p-3 space-y-1">

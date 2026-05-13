@@ -10,12 +10,15 @@ import type {
 } from '../../desktop/ipc/contracts';
 import { assertRuntimeStatus as assertRuntimeStatusPayload, IPC_CONTRACT_VERSION as EXPECTED_IPC_CONTRACT_VERSION } from '../../desktop/ipc/contracts';
 import { observability } from './observability';
+import { DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE, isDesktopRuntime } from './runtimeEnvironment';
 
 const fallbackStatus: RuntimeStatus = {
   contractVersion: EXPECTED_IPC_CONTRACT_VERSION,
   ready: false,
   connectedDeviceId: null,
   protocol: null,
+  dryRun: true,
+  deviceStatus: null,
   metrics: {
     protocolQueueDepth: 0,
     protocolQueueHighWatermark: 0,
@@ -23,12 +26,11 @@ const fallbackStatus: RuntimeStatus = {
   }
 };
 
-const unavailableError =
-  'Native runtime unavailable. Start the desktop shell to access hardware protocols.';
+const unavailableError = DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE;
 const incompatibleRuntimeErrorPrefix = 'Incompatible native runtime contract';
 
 function getNativeApi(): NativeIpcApi {
-  if (!window.lightAiNative) {
+  if (!isDesktopRuntime || !window.lightAiNative) {
     throw new Error(unavailableError);
   }
   return window.lightAiNative;
@@ -51,7 +53,7 @@ export const runtimeClient = {
     }
   },
   getRuntimeStatus: async (): Promise<RuntimeStatusHandshake> => {
-    if (!window.lightAiNative) {
+    if (!isDesktopRuntime || !window.lightAiNative) {
       observability.warn('runtimeClient', 'Native runtime unavailable, returning fallback status', undefined, [
         'runtime',
         'degraded',
