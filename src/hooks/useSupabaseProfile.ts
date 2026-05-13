@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { supabase, type Profile } from '../lib/supabase';
+import { SUPABASE_DISABLED_MESSAGE, supabase, type Profile } from '../lib/supabase';
 import { observability } from '../lib/observability';
 
 export function useSupabaseProfile() {
@@ -7,6 +7,11 @@ export function useSupabaseProfile() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const fetchProfile = useCallback(async (userId: string) => {
+    if (!supabase) {
+      observability.warn('useSupabaseProfile', SUPABASE_DISABLED_MESSAGE, { userId }, ['auth', 'configuration']);
+      return;
+    }
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -26,6 +31,12 @@ export function useSupabaseProfile() {
   }, []);
 
   useEffect(() => {
+    if (!supabase) {
+      observability.warn('useSupabaseProfile', SUPABASE_DISABLED_MESSAGE, undefined, ['auth', 'configuration']);
+      setProfile(null);
+      return;
+    }
+
     const handleReconnect = () => {
       observability.incident('recovered', 'Client reconnected, refreshing authenticated profile');
       supabase.auth.getSession().then(({ data: { session } }) => {

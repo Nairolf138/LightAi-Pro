@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { SUPABASE_DISABLED_MESSAGE, supabase } from './supabase';
 import { observability } from './observability';
 
 export type ProjectRole = 'owner' | 'operator' | 'viewer';
@@ -56,6 +56,11 @@ export async function syncSharedShowState<TState extends Record<string, unknown>
     throw new Error('offline_sync_deferred');
   }
 
+  if (!supabase) {
+    observability.warn('liveCollaboration', SUPABASE_DISABLED_MESSAGE, { sharedShowId }, ['configuration', 'sync']);
+    throw new Error(SUPABASE_DISABLED_MESSAGE);
+  }
+
   const { data, error } = await supabase.rpc('sync_shared_show_state', {
     p_shared_show_id: sharedShowId,
     p_expected_version: expectedVersion,
@@ -87,6 +92,11 @@ export async function logCueAction(params: {
   actionType?: string;
   payload?: Record<string, unknown>;
 }): Promise<void> {
+  if (!supabase) {
+    observability.warn('liveCollaboration', SUPABASE_DISABLED_MESSAGE, { projectId: params.projectId }, ['configuration', 'journal']);
+    throw new Error(SUPABASE_DISABLED_MESSAGE);
+  }
+
   const { error } = await supabase.rpc('log_cue_action', {
     p_project_id: params.projectId,
     p_shared_show_id: params.sharedShowId,
@@ -108,6 +118,11 @@ export async function acquireLiveControlLock(params: {
   sessionId: string;
   ttlSeconds?: number;
 }): Promise<LiveControlLock> {
+  if (!supabase) {
+    observability.warn('liveCollaboration', SUPABASE_DISABLED_MESSAGE, { projectId: params.projectId }, ['configuration', 'lock']);
+    throw new Error(SUPABASE_DISABLED_MESSAGE);
+  }
+
   const { data, error } = await supabase.rpc('acquire_live_control_lock', {
     p_project_id: params.projectId,
     p_session_id: params.sessionId,
@@ -139,6 +154,12 @@ export async function heartbeatLiveControlLock(params: {
     }, ['offline', 'lock']);
     throw new Error('offline_heartbeat_skipped');
   }
+
+  if (!supabase) {
+    observability.warn('liveCollaboration', SUPABASE_DISABLED_MESSAGE, { projectId: params.projectId }, ['configuration', 'lock']);
+    throw new Error(SUPABASE_DISABLED_MESSAGE);
+  }
+
   const { data, error } = await supabase.rpc('heartbeat_live_control_lock', {
     p_project_id: params.projectId,
     p_session_id: params.sessionId,
@@ -153,6 +174,11 @@ export async function heartbeatLiveControlLock(params: {
 }
 
 export async function releaseLiveControlLock(projectId: string, sessionId: string): Promise<boolean> {
+  if (!supabase) {
+    observability.warn('liveCollaboration', SUPABASE_DISABLED_MESSAGE, { projectId }, ['configuration', 'lock']);
+    throw new Error(SUPABASE_DISABLED_MESSAGE);
+  }
+
   const { data, error } = await supabase.rpc('release_live_control_lock', {
     p_project_id: projectId,
     p_session_id: sessionId

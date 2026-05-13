@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ArrowUpRight, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { supabase, type EffectHistory } from '../lib/supabase';
+import { SUPABASE_DISABLED_MESSAGE, supabase, type EffectHistory } from '../lib/supabase';
 
 type EffectHistoryListProps = {
   userId: string;
@@ -11,11 +11,12 @@ type EffectHistoryListProps = {
 export function EffectHistoryList({ userId, onLoadConfiguration }: EffectHistoryListProps) {
   const [history, setHistory] = useState<EffectHistory[]>([]);
 
-  useEffect(() => {
-    void fetchHistory();
-  }, [userId]);
+  const fetchHistory = useCallback(async () => {
+    if (!supabase) {
+      setHistory([]);
+      return;
+    }
 
-  const fetchHistory = async () => {
     const { data, error } = await supabase
       .from('effect_history')
       .select('*')
@@ -29,7 +30,11 @@ export function EffectHistoryList({ userId, onLoadConfiguration }: EffectHistory
     }
 
     setHistory(data || []);
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    void fetchHistory();
+  }, [fetchHistory]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -47,6 +52,12 @@ export function EffectHistoryList({ userId, onLoadConfiguration }: EffectHistory
         <Clock className="w-5 h-5 text-yellow-400" />
         <h3 className="text-xl font-semibold">Recent Effects</h3>
       </div>
+
+      {!supabase && (
+        <div className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 p-3 text-sm text-yellow-100">
+          {SUPABASE_DISABLED_MESSAGE}
+        </div>
+      )}
 
       <div className="space-y-2">
         {history.map((item) => (

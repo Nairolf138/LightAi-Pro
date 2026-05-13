@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { SUPABASE_DISABLED_MESSAGE, supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { runtimeClient } from '../lib/runtimeClient';
 
@@ -103,6 +103,33 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   if (!isOpen) return null;
 
+  if (!supabase) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50">
+        <div className="bg-gray-900 p-8 rounded-xl w-full max-w-md relative space-y-4">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            aria-label="Close authentication modal"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <h2 className="text-2xl font-bold gradient-text">Authentication unavailable</h2>
+          <div className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 p-3 text-sm text-yellow-100">
+            {SUPABASE_DISABLED_MESSAGE}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-lg hover:bg-yellow-300 transition-colors"
+          >
+            Continue without Supabase
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const persistCredentials = async (): Promise<void> => {
     if (rememberSecurely) {
       await runtimeClient.vaultSetSecret({
@@ -118,6 +145,11 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
+
+    if (!supabase) {
+      setFormError(SUPABASE_DISABLED_MESSAGE);
+      return;
+    }
 
     if (!isLogin && !passwordPolicy.isValid) {
       setFormError('Password policy is not satisfied. Review all requirements before creating the account.');

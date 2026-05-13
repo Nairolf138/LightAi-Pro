@@ -1,6 +1,6 @@
 import React from 'react';
 import { LogOut, User } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { SUPABASE_DISABLED_MESSAGE, supabase } from '../lib/supabase';
 import type { Profile } from '../lib/supabase';
 
 type UserMenuProps = {
@@ -9,6 +9,10 @@ type UserMenuProps = {
 
 export function UserMenu({ profile }: UserMenuProps) {
   const handleSignOut = async () => {
+    if (!supabase) {
+      return;
+    }
+
     await supabase.auth.signOut();
   };
 
@@ -19,10 +23,16 @@ export function UserMenu({ profile }: UserMenuProps) {
         <span>{profile.username}</span>
       </button>
       
-      <div className="absolute right-0 mt-2 w-48 py-2 bg-gray-900 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+      <div className="absolute right-0 mt-2 w-64 py-2 bg-gray-900 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+        {!supabase && (
+          <div className="px-4 py-2 text-xs text-yellow-100">
+            {SUPABASE_DISABLED_MESSAGE}
+          </div>
+        )}
         <button
           onClick={handleSignOut}
-          className="w-full px-4 py-2 text-left flex items-center space-x-2 hover:bg-gray-800 transition-colors"
+          disabled={!supabase}
+          className="w-full px-4 py-2 text-left flex items-center space-x-2 hover:bg-gray-800 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         >
           <LogOut className="w-4 h-4" />
           <span>Sign Out</span>

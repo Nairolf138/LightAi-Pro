@@ -21,7 +21,7 @@ import {
 import { effects } from './lib/effects';
 import { buildIncidentReport, downloadIncidentReport, observability } from './lib/observability';
 import { runtimeClient } from './lib/runtimeClient';
-import { supabase } from './lib/supabase';
+import { SUPABASE_DISABLED_MESSAGE, supabase } from './lib/supabase';
 import { emitAiSuggestionEvent } from './lib/aiSuggestionTelemetry';
 import type { CollaborationConflict, GuidedMergeResolution } from './lib/collaborationStrategy';
 
@@ -100,7 +100,7 @@ function App() {
 
       observability.info('preset-audit', action, technicalAudit);
 
-      if (!profileState.profile) {
+      if (!profileState.profile || !supabase) {
         return;
       }
 
@@ -123,7 +123,7 @@ function App() {
 
   const logEffectUsage = useCallback(
     async (effectName: string, configuration: Record<string, unknown>) => {
-      if (!profileState.profile) return;
+      if (!profileState.profile || !supabase) return;
 
       const { error } = await supabase.from('effect_history').insert([
         {
@@ -351,6 +351,11 @@ function App() {
     <AppStateProvider value={appState}>
       <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 text-white">
         <Toaster position="top-right" />
+        {!supabase && (
+          <div className="fixed left-1/2 top-24 z-50 w-[min(90vw,42rem)] -translate-x-1/2 rounded-lg border border-yellow-400/40 bg-yellow-400/10 px-4 py-3 text-center text-sm text-yellow-100 shadow-xl backdrop-blur">
+            {SUPABASE_DISABLED_MESSAGE}
+          </div>
+        )}
         <AuthModal isOpen={profileState.isAuthModalOpen} onClose={profileState.closeAuthModal} />
 
         <EffectSidePanel onLoadPreset={handleLoadPreset} onLoadConfiguration={handleLoadConfiguration} />
