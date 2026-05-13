@@ -29,6 +29,8 @@ cp .env.example .env.local
 npm run dev
 ```
 
+`npm install` prépare les dépendances web. Les commandes `desktop:*` vérifient aussi les dépendances Electron et installent automatiquement celles de `desktop/` si elles sont absentes.
+
 Renseignez les variables Supabase dans `.env.local` si nécessaire :
 
 ```env
@@ -51,6 +53,8 @@ Dans un autre terminal, démarrez ensuite le runtime desktop Electron :
 ```bash
 npm run desktop:dev
 ```
+
+Si Windows affiche `electron n’est pas reconnu`, relancez simplement cette commande depuis la racine du dépôt : le pré-script installe `desktop/node_modules` avant d'appeler Electron. Vous pouvez aussi lancer explicitement `npm install --prefix desktop`.
 
 Par défaut, `desktop/main.ts` charge l'interface depuis :
 
