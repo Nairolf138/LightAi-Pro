@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Save, Share2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { prepareConfigurationForStorage } from '../lib/effectConfiguration';
-import { supabase, type Preset } from '../lib/supabase';
+import { SUPABASE_DISABLED_MESSAGE, supabase, type Preset } from '../lib/supabase';
 
 type PresetManagerProps = {
   userId: string;
@@ -21,11 +21,12 @@ export function PresetManager({
   const [newPresetName, setNewPresetName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  useEffect(() => {
-    void fetchPresets();
-  }, [userId]);
+  const fetchPresets = useCallback(async () => {
+    if (!supabase) {
+      setPresets([]);
+      return;
+    }
 
-  const fetchPresets = async () => {
     const { data, error } = await supabase
       .from('presets')
       .select('*')
@@ -38,11 +39,20 @@ export function PresetManager({
     }
 
     setPresets(data || []);
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    void fetchPresets();
+  }, [fetchPresets]);
 
   const savePreset = async () => {
     if (!newPresetName.trim()) {
       toast.error('Please enter a preset name');
+      return;
+    }
+
+    if (!supabase) {
+      toast.error(SUPABASE_DISABLED_MESSAGE);
       return;
     }
 
@@ -68,6 +78,11 @@ export function PresetManager({
   };
 
   const deletePreset = async (presetId: string) => {
+    if (!supabase) {
+      toast.error(SUPABASE_DISABLED_MESSAGE);
+      return;
+    }
+
     const { error } = await supabase.from('presets').delete().eq('id', presetId);
 
     if (error) {
@@ -91,11 +106,18 @@ export function PresetManager({
         <h3 className="text-xl font-semibold">My Presets</h3>
         <button
           onClick={() => setIsCreating(true)}
-          className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-300 transition-colors"
+          disabled={!supabase}
+          className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-300 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         >
           Save Current
         </button>
       </div>
+
+      {!supabase && (
+        <div className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 p-3 text-sm text-yellow-100">
+          {SUPABASE_DISABLED_MESSAGE}
+        </div>
+      )}
 
       {isCreating && (
         <div className="flex gap-2">

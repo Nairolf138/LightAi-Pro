@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { SUPABASE_DISABLED_MESSAGE, supabase } from './supabase';
 import { observability } from './observability';
 
 export type AiSuggestionEventType =
@@ -50,6 +50,13 @@ export const pseudonymizeOperatorId = async (operatorId: string): Promise<string
 };
 
 export const emitAiSuggestionEvent = async (input: AiSuggestionEventInput): Promise<void> => {
+  if (!supabase) {
+    observability.warn('ai-suggestion-telemetry', SUPABASE_DISABLED_MESSAGE, {
+      eventType: input.eventType,
+    });
+    return;
+  }
+
   const operatorPseudoId = await pseudonymizeOperatorId(input.operatorId);
   const { error } = await supabase.from('ai_suggestion_events').insert([
     {
