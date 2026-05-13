@@ -208,7 +208,8 @@ const sanitize = (value: unknown): unknown => {
   return value;
 };
 
-const APP_VERSION = import.meta.env.VITE_APP_VERSION ?? 'dev';
+const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {};
+const APP_VERSION = viteEnv.VITE_APP_VERSION ?? 'dev';
 
 export const buildIncidentReport = (options: {
   exportScope: 'private' | 'public';
