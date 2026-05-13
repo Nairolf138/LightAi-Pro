@@ -1,5 +1,6 @@
 import { AlertTriangle, Download, Shield } from 'lucide-react';
 import { useAppState } from '../../context/AppStateContext';
+import { getCurrentEnvironmentDiagnostics } from '../../lib/environmentDiagnostics';
 import { DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE, isWebRuntime } from '../../lib/runtimeEnvironment';
 
 export function DiagnosticsPanel() {
@@ -10,6 +11,7 @@ export function DiagnosticsPanel() {
   }
 
   const { snapshot, runtimeStatus } = diagnostics;
+  const environmentIssues = getCurrentEnvironmentDiagnostics();
   const safetyLogs = snapshot.logs.filter((log) => log.module === 'safety-monitor' || log.tags?.includes('safety')).slice(0, 20);
 
   return (
@@ -24,6 +26,35 @@ export function DiagnosticsPanel() {
           <div>Session: <span className="text-yellow-300">{snapshot.sessionId}</span></div>
           <div>Show: <span className="text-yellow-300">{snapshot.showId}</span></div>
           <div>MAJ: <span className="text-gray-300">{new Date(snapshot.updatedAt).toLocaleString()}</span></div>
+        </div>
+
+
+        <div className="bg-gray-900/80 rounded-lg p-3 space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <div className="font-medium">Environnement</div>
+            <span className={environmentIssues.length > 0 ? 'text-xs text-yellow-300' : 'text-xs text-emerald-300'}>
+              {environmentIssues.length > 0 ? `${environmentIssues.length} problème(s)` : 'OK'}
+            </span>
+          </div>
+          {environmentIssues.length > 0 ? (
+            <div className="space-y-2">
+              {environmentIssues.map((issue) => (
+                <div key={issue.code} className="rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3">
+                  <div className="flex items-start gap-2 text-yellow-100">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <div>
+                      <div className="font-medium">{issue.title}</div>
+                      <div className="mt-1 text-xs text-yellow-50/90">{issue.message}</div>
+                      <div className="mt-2 text-xs text-gray-400">Impact: {issue.affectedFeatures.join(', ')}</div>
+                      <div className="mt-1 text-xs text-gray-300">Action: {issue.remediation}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-xs text-gray-300">Authentification, presets cloud, version de build et runtime desktop semblent configurés.</div>
+          )}
         </div>
 
         <div className="bg-gray-900/80 rounded-lg p-3 space-y-1">
