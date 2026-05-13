@@ -17,6 +17,29 @@ LightAI-Pro est l'application du futur de conduite lumière de scènes (web + de
 - Durcissement de la chaîne release desktop selon les environnements de distribution.
 - Stabilisation complète des workflows collaboration Supabase en production.
 
+## Démarrage local
+
+Avant de lancer l'application en local, copiez le fichier d'exemple d'environnement :
+
+```bash
+cp .env.example .env.local
+```
+
+Renseignez ensuite les variables Supabase dans `.env.local` :
+
+```env
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+```
+
+Les variables préfixées `VITE_` sont injectées côté navigateur par Vite.
+
+Relancez enfin le serveur de développement :
+
+```bash
+npm run dev
+```
+
 ## Documentation
 
 ### Utilisateur
