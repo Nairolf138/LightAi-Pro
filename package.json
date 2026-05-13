@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "desktop:dev": "npm run dev --prefix desktop",
+    "desktop:check": "npm run build && npm run compile --prefix desktop",
     "desktop:build": "npm run build && npm run build --prefix desktop",
     "desktop:build:win": "npm run build && npm run build:win --prefix desktop",
     "test": "node scripts/run-tests.mjs",
