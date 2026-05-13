@@ -16,7 +16,8 @@
     "test:ci": "node scripts/run-tests.mjs",
     "bench:phase2-exit": "node scripts/run-phase2-exit-bench.mjs",
     "ai:eval": "node experiments/run-eval.mjs --input artifacts/ai-eval/sample-events.jsonl --datasetSnapshot sample-snapshot-v1 --promptRulesVersion prompt-rules-v1",
-    "ci:ai-report": "node scripts/ci/check-ai-eval-report.mjs"
+    "ci:ai-report": "node scripts/ci/check-ai-eval-report.mjs",
+    "test:smoke": "node scripts/check-frontend-mount.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
