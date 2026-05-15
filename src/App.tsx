@@ -20,7 +20,7 @@ import {
 } from './lib/effectConfiguration';
 import { effects } from './lib/effects';
 import { buildIncidentReport, downloadIncidentReport, observability } from './lib/observability';
-import { runtimeClient } from './lib/runtimeClient';
+import { runtimeClient, runtimeFallbackStatus } from './lib/runtimeClient';
 import { isWebRuntime } from './lib/runtimeEnvironment';
 import { SUPABASE_DISABLED_MESSAGE, supabase } from './lib/supabase';
 import { emitAiSuggestionEvent } from './lib/aiSuggestionTelemetry';
@@ -74,15 +74,17 @@ function App() {
         .catch((error) => {
           observability.warn('runtime', 'Runtime status polling failed', {
             reason: error instanceof Error ? error.message : String(error)
-          });
+          }, ['runtime', 'ipc']);
         });
     };
 
-    pollStatus();
-
     if (isWebRuntime) {
+      setRuntimeStatus(runtimeFallbackStatus);
+      observability.debug('runtime', 'Browser/dev runtime fallback active', undefined, ['runtime', 'web']);
       return undefined;
     }
+
+    pollStatus();
 
     const id = window.setInterval(pollStatus, 1000);
     return () => clearInterval(id);

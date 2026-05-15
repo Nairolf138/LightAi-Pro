@@ -1,4 +1,6 @@
 import { getEnvironmentDiagnostics } from '../../src/lib/environmentDiagnostics';
+import { observability } from '../../src/lib/observability';
+import { runtimeClient } from '../../src/lib/runtimeClient';
 import { assert, test } from '../harness';
 
 test('diagnostic environnement: signale Supabase, desktop et version dev indisponibles', () => {
@@ -26,4 +28,33 @@ test('diagnostic environnement: retourne une liste vide pour une configuration c
   });
 
   assert.equal(issues.length, 0);
+});
+
+test('diagnostic runtime: le fallback web ne crée pas de warnings sev3 répétés', async () => {
+  const countWebFallbackIncidents = () =>
+    observability
+      .snapshot()
+      .logs.filter(
+        (entry) =>
+          entry.module === 'runtimeClient' &&
+          entry.message.includes('Native runtime unavailable') &&
+          entry.incidentSeverity === 'sev3',
+      ).length;
+
+  const before = countWebFallbackIncidents();
+
+  await runtimeClient.getRuntimeStatus();
+  await runtimeClient.getRuntimeStatus();
+
+  const fallbackLogs = observability
+    .snapshot()
+    .logs.filter(
+      (entry) =>
+        entry.module === 'runtimeClient' && entry.message.includes('Native runtime unavailable in browser/dev mode'),
+    );
+
+  assert.equal(countWebFallbackIncidents(), before);
+  assert.equal(fallbackLogs.length, 1);
+  assert.equal(fallbackLogs[0].level, 'info');
+  assert.equal(fallbackLogs[0].incidentSeverity, 'none');
 });

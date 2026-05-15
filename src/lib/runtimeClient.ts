@@ -12,7 +12,7 @@ import { assertRuntimeStatus as assertRuntimeStatusPayload, IPC_CONTRACT_VERSION
 import { observability } from './observability';
 import { DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE, isDesktopRuntime } from './runtimeEnvironment';
 
-const fallbackStatus: RuntimeStatus = {
+export const runtimeFallbackStatus: RuntimeStatus = {
   contractVersion: EXPECTED_IPC_CONTRACT_VERSION,
   ready: false,
   connectedDeviceId: null,
@@ -27,6 +27,9 @@ const fallbackStatus: RuntimeStatus = {
 };
 
 const unavailableError = DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE;
+const unavailableRuntimeTags = ['runtime', 'degraded'] as const;
+const runtimeIpcTags = ['runtime', 'ipc'] as const;
+let loggedWebRuntimeFallback = false;
 const incompatibleRuntimeErrorPrefix = 'Incompatible native runtime contract';
 
 function getNativeApi(): NativeIpcApi {
@@ -54,25 +57,42 @@ export const runtimeClient = {
   },
   getRuntimeStatus: async (): Promise<RuntimeStatusHandshake> => {
     if (!isDesktopRuntime || !window.lightAiNative) {
-      observability.warn('runtimeClient', 'Native runtime unavailable, returning fallback status', undefined, [
-        'runtime',
-        'degraded',
-      ]);
-      return { ...fallbackStatus, compatible: true };
+      if (!loggedWebRuntimeFallback) {
+        observability.info(
+          'runtimeClient',
+          'Native runtime unavailable in browser/dev mode, returning fallback status',
+          undefined,
+          [...unavailableRuntimeTags],
+        );
+        loggedWebRuntimeFallback = true;
+      }
+      return { ...runtimeFallbackStatus, compatible: true };
     }
-    const status = await window.lightAiNative.getRuntimeStatus();
-    assertRuntimeStatusPayload(status);
-    if (status.contractVersion !== EXPECTED_IPC_CONTRACT_VERSION) {
-      throw new Error(
-        `${incompatibleRuntimeErrorPrefix}: operator action required. Renderer expects ${EXPECTED_IPC_CONTRACT_VERSION}, native runtime reports ${status.contractVersion}. Restart and redeploy both desktop shell and renderer with the same build.`,
+
+    try {
+      const status = await window.lightAiNative.getRuntimeStatus();
+      assertRuntimeStatusPayload(status);
+      if (status.contractVersion !== EXPECTED_IPC_CONTRACT_VERSION) {
+        throw new Error(
+          `${incompatibleRuntimeErrorPrefix}: operator action required. Renderer expects ${EXPECTED_IPC_CONTRACT_VERSION}, native runtime reports ${status.contractVersion}. Restart and redeploy both desktop shell and renderer with the same build.`,
+        );
+      }
+      observability.setProtocolMetrics({
+        queueDepth: status.metrics.protocolQueueDepth,
+        queueHighWatermark: status.metrics.protocolQueueHighWatermark,
+        droppedFrames: status.metrics.protocolDroppedFrames,
+      });
+      return { ...status, compatible: true };
+    } catch (error) {
+      observability.error(
+        'runtimeClient',
+        'Native runtime status IPC failed',
+        { reason: error instanceof Error ? error.message : String(error) },
+        'sev2',
+        [...runtimeIpcTags],
       );
+      throw error;
     }
-    observability.setProtocolMetrics({
-      queueDepth: status.metrics.protocolQueueDepth,
-      queueHighWatermark: status.metrics.protocolQueueHighWatermark,
-      droppedFrames: status.metrics.protocolDroppedFrames,
-    });
-    return { ...status, compatible: true };
   },
   vaultSetSecret: async (request: VaultSecretRequest): Promise<void> => getNativeApi().vaultSetSecret(request),
   vaultGetSecret: async (request: VaultSecretKeyRequest): Promise<string | null> =>
