@@ -7,7 +7,7 @@
   "type": "module",
   "main": "dist/main.js",
   "scripts": {
-    "dev": "electron .",
+    "dev": "npm run compile && electron .",
     "build": "npm run compile && electron-builder --config ./electron-builder.yml",
     "sign:build": "node ./scripts/sign-build.mjs",
     "build:mac": "electron-builder --mac --config ./electron-builder.yml",
