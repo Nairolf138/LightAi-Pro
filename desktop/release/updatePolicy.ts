@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { autoUpdater } from 'electron-updater';
+import electronUpdater from 'electron-updater';
+const { autoUpdater } = electronUpdater;
 
 const VALID_CHANNELS = new Set(['stable', 'beta']);
 const DEFAULT_CHANNEL = 'stable';
