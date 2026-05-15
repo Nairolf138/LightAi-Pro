@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_DISABLED_MESSAGE } from './supabaseStatus';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {};
+const supabaseUrl = viteEnv.VITE_SUPABASE_URL;
+const supabaseAnonKey = viteEnv.VITE_SUPABASE_ANON_KEY;
 
-export const SUPABASE_DISABLED_MESSAGE = 'Supabase is not configured. Authentication and cloud presets are disabled.';
+export { SUPABASE_DISABLED_MESSAGE };
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 

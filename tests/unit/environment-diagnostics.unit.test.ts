@@ -1,5 +1,7 @@
 import { getEnvironmentDiagnostics } from '../../src/lib/environmentDiagnostics';
-import { observability } from '../../src/lib/observability';
+import { initializeMainShowObservability, observability } from '../../src/lib/observability';
+import { logSupabaseDisabledOnce } from '../../src/lib/supabaseDiagnostics';
+import { SUPABASE_DISABLED_MESSAGE } from '../../src/lib/supabaseStatus';
 import { runtimeClient } from '../../src/lib/runtimeClient';
 import { assert, test } from '../harness';
 
@@ -57,4 +59,20 @@ test('diagnostic runtime: le fallback web ne crée pas de warnings sev3 répét�
   assert.equal(fallbackLogs.length, 1);
   assert.equal(fallbackLogs[0].level, 'info');
   assert.equal(fallbackLogs[0].incidentSeverity, 'none');
+});
+
+test('diagnostic Supabase désactivé: les logs sont attribués au show principal avant les hooks', () => {
+  initializeMainShowObservability();
+  const existingIds = new Set(observability.snapshot().logs.map((entry) => entry.id));
+
+  logSupabaseDisabledOnce();
+  logSupabaseDisabledOnce();
+
+  const supabaseDisabledLogs = observability
+    .snapshot()
+    .logs.filter((entry) => !existingIds.has(entry.id) && entry.message === SUPABASE_DISABLED_MESSAGE);
+
+  assert.equal(supabaseDisabledLogs.length, 1);
+  assert.equal(supabaseDisabledLogs[0].module, 'useSupabaseProfile');
+  assert.equal(supabaseDisabledLogs[0].showId, 'main-show');
 });

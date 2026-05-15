@@ -40,6 +40,7 @@ export interface ObservabilitySnapshot {
 
 const LOG_LIMIT = 400;
 const LATENCY_SAMPLE_LIMIT = 240;
+const MAIN_SHOW_ID = 'main-show';
 
 const randomId = (): string =>
   typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -67,9 +68,26 @@ class ObservabilityStore {
   private protocolQueueHighWatermark = 0;
   private protocolDroppedFrames = 0;
   private incidentTimeline: IncidentTimelineEvent[] = [];
+  private emittedOnceKeys = new Set<string>();
 
   setShowId(showId: string): void {
     this.showId = showId;
+  }
+
+  logOnce(
+    key: string,
+    level: ObservabilityLevel,
+    module: string,
+    message: string,
+    data?: Record<string, unknown>,
+    options?: { tags?: string[]; incidentSeverity?: 'sev1' | 'sev2' | 'sev3' | 'none' }
+  ): void {
+    if (this.emittedOnceKeys.has(key)) {
+      return;
+    }
+
+    this.emittedOnceKeys.add(key);
+    this.log(level, module, message, data, options);
   }
 
   log(
@@ -160,6 +178,10 @@ class ObservabilityStore {
 
 const store = new ObservabilityStore();
 
+export const initializeMainShowObservability = (): void => {
+  store.setShowId(MAIN_SHOW_ID);
+};
+
 export const observability = {
   setShowId: (showId: string) => store.setShowId(showId),
   debug: (module: string, message: string, data?: Record<string, unknown>, tags?: string[]) =>
@@ -168,6 +190,8 @@ export const observability = {
     store.log('info', module, message, data, { tags, incidentSeverity: 'none' }),
   warn: (module: string, message: string, data?: Record<string, unknown>, tags?: string[]) =>
     store.log('warn', module, message, data, { tags, incidentSeverity: 'sev3' }),
+  warnOnce: (key: string, module: string, message: string, data?: Record<string, unknown>, tags?: string[]) =>
+    store.logOnce(key, 'warn', module, message, data, { tags, incidentSeverity: 'sev3' }),
   error: (
     module: string,
     message: string,

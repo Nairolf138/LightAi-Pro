@@ -19,12 +19,19 @@ import {
   rollbackConfiguration
 } from './lib/effectConfiguration';
 import { effects } from './lib/effects';
-import { buildIncidentReport, downloadIncidentReport, observability } from './lib/observability';
+import {
+  buildIncidentReport,
+  downloadIncidentReport,
+  initializeMainShowObservability,
+  observability
+} from './lib/observability';
 import { runtimeClient, runtimeFallbackStatus } from './lib/runtimeClient';
 import { isWebRuntime } from './lib/runtimeEnvironment';
 import { SUPABASE_DISABLED_MESSAGE, supabase } from './lib/supabase';
 import { emitAiSuggestionEvent } from './lib/aiSuggestionTelemetry';
 import type { CollaborationConflict, GuidedMergeResolution } from './lib/collaborationStrategy';
+
+initializeMainShowObservability();
 
 function App() {
   const [activeConflict, setActiveConflict] = useState<CollaborationConflict<Record<string, unknown>> | null>(null);
@@ -55,7 +62,6 @@ function App() {
 
 
   useEffect(() => {
-    observability.setShowId('main-show');
     observability.info('app', 'Application booted');
   }, []);
 
