@@ -41,7 +41,7 @@ Chaque payload entrant est validé (`assertConnectDeviceRequest`, `assertSendFra
 ## Scripts
 
 Depuis la racine:
-- `npm run desktop:dev` : lance le shell desktop en mode développement.
+- `npm run desktop:dev` : compile le runtime Electron (`desktop/`), puis lance le shell desktop en mode développement.
 - `npm run desktop:build` : point d'entrée build packaging desktop.
 
 ## Évolution recommandée
