@@ -54,6 +54,8 @@ Dans un autre terminal, démarrez ensuite le runtime desktop Electron :
 npm run desktop:dev
 ```
 
+Cette commande compile automatiquement le runtime Electron (`desktop/`) avant de lancer la fenêtre, vous n'avez donc pas besoin d'exécuter `npm run compile --prefix desktop` séparément en usage courant.
+
 Si Windows affiche `electron n’est pas reconnu`, relancez simplement cette commande depuis la racine du dépôt : le pré-script installe `desktop/node_modules` avant d'appeler Electron. Vous pouvez aussi lancer explicitement `npm install --prefix desktop`.
 
 Par défaut, `desktop/main.ts` charge l'interface depuis :

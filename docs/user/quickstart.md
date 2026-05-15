@@ -21,6 +21,8 @@ Pour tester le shell desktop (runtime matériel):
 npm run desktop:dev
 ```
 
+Cette commande compile automatiquement le runtime Electron (`desktop/`) avant d'ouvrir le shell desktop.
+
 ---
 
 ## 2) Connexion matériel

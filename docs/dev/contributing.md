@@ -51,6 +51,8 @@ Desktop (dev):
 npm run desktop:dev
 ```
 
+`npm run desktop:dev` compile automatiquement le runtime Electron (`desktop/`) avant le lancement.
+
 ---
 
 ## 4) Tests attendus avant PR
