@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { app, BrowserWindow, dialog, session } from 'electron';
-import { autoUpdater } from 'electron-updater';
+import electronUpdater from 'electron-updater';
+const { autoUpdater } = electronUpdater;
 import { registerIpcHandlers } from './ipc/handlers.js';
 import { HardwareRuntime } from './native/hardwareRuntime.js';
 import { verifyRuntimeIntegrity } from './security/integrity.js';
