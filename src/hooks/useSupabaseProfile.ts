@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { SUPABASE_DISABLED_MESSAGE, supabase, type Profile } from '../lib/supabase';
+import { supabase, type Profile } from '../lib/supabase';
 import { observability } from '../lib/observability';
+import { logSupabaseDisabledOnce } from '../lib/supabaseDiagnostics';
 
 export function useSupabaseProfile() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -8,7 +9,7 @@ export function useSupabaseProfile() {
 
   const fetchProfile = useCallback(async (userId: string) => {
     if (!supabase) {
-      observability.warn('useSupabaseProfile', SUPABASE_DISABLED_MESSAGE, { userId }, ['auth', 'configuration']);
+      logSupabaseDisabledOnce({ userId });
       return;
     }
 
@@ -32,7 +33,7 @@ export function useSupabaseProfile() {
 
   useEffect(() => {
     if (!supabase) {
-      observability.warn('useSupabaseProfile', SUPABASE_DISABLED_MESSAGE, undefined, ['auth', 'configuration']);
+      logSupabaseDisabledOnce();
       setProfile(null);
       return;
     }
