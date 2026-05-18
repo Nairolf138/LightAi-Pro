@@ -9,7 +9,7 @@ export const ipcChannels = {
   vaultDeleteSecret: 'security:vault:delete-secret'
 } as const;
 
-export const IPC_CONTRACT_VERSION = '1.1.0' as const;
+export const IPC_CONTRACT_VERSION = '1.2.0' as const;
 
 export type IpcChannel = (typeof ipcChannels)[keyof typeof ipcChannels];
 
