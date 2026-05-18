@@ -1,9 +1,41 @@
 import { AudioAnalyzer, type EnergyBands } from '../core/audio';
 
+export type EffectConfiguration = Record<string, unknown>;
+
+interface ColorChaseConfiguration extends EffectConfiguration {
+  speed: number;
+  colors: string[];
+  mode: 'linear';
+}
+
+interface AudioReactiveConfiguration extends EffectConfiguration {
+  sensitivity: number;
+  colorIntensity: number;
+  smoothing: number;
+}
+
+interface MatrixRainConfiguration extends EffectConfiguration {
+  density: number;
+  speed: number;
+  fontSize: number;
+}
+
+interface ParticleSystemConfiguration extends EffectConfiguration {
+  particleCount: number;
+  maxSpeed: number;
+  connectionRadius: number;
+}
+
+interface LaserShowConfiguration extends EffectConfiguration {
+  beamCount: number;
+  rotationSpeed: number;
+  thickness: number;
+}
+
 export interface Effect {
   name: string;
   color: string;
-  configuration: Record<string, any>;
+  configuration: EffectConfiguration;
   render: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, analyzer?: AudioAnalyzer) => void;
 }
 
@@ -35,6 +67,9 @@ export const subscribeEffectToAudio = (
 
   return () => cleanups.forEach((cleanup) => cleanup());
 };
+const getEffectConfiguration = <TConfiguration extends EffectConfiguration>(index: number) =>
+  effects[index].configuration as TConfiguration;
+
 const createGradient = (ctx: CanvasRenderingContext2D, colors: string[]) => {
   const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
   colors.forEach((color, i) => {
@@ -53,7 +88,7 @@ export const effects: Effect[] = [
       mode: 'linear'
     },
     render: (ctx, canvas) => {
-      const { colors, speed } = effects[0].configuration;
+      const { colors, speed } = getEffectConfiguration<ColorChaseConfiguration>(0);
       const time = Date.now() * speed * 0.001;
       const gradient = createGradient(ctx, colors);
       
@@ -92,7 +127,7 @@ export const effects: Effect[] = [
 
       // Draw frequency spectrum
       const barWidth = canvas.width / spectrum.length;
-      const sensitivity = effects[1].configuration.sensitivity;
+      const { sensitivity } = getEffectConfiguration<AudioReactiveConfiguration>(1);
 
       spectrum.forEach((value, i) => {
         const height = value * canvas.height * sensitivity;
@@ -126,7 +161,7 @@ export const effects: Effect[] = [
       fontSize: 14
     },
     render: (ctx, canvas) => {
-      const { density, speed, fontSize } = effects[2].configuration;
+      const { density, speed, fontSize } = getEffectConfiguration<MatrixRainConfiguration>(2);
       ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -158,8 +193,8 @@ export const effects: Effect[] = [
       maxSpeed: 2,
       connectionRadius: 100
     },
-    render: (ctx, canvas, analyzer) => {
-      const { particleCount, maxSpeed, connectionRadius } = effects[3].configuration;
+    render: (ctx, canvas) => {
+      const { particleCount, maxSpeed, connectionRadius } = getEffectConfiguration<ParticleSystemConfiguration>(3);
       
       interface Particle {
         x: number;
@@ -220,8 +255,8 @@ export const effects: Effect[] = [
       rotationSpeed: 1,
       thickness: 2
     },
-    render: (ctx, canvas, analyzer) => {
-      const { beamCount, rotationSpeed, thickness } = effects[4].configuration;
+    render: (ctx, canvas) => {
+      const { beamCount, rotationSpeed, thickness } = getEffectConfiguration<LaserShowConfiguration>(4);
       const time = Date.now() * 0.001 * rotationSpeed;
 
       ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
