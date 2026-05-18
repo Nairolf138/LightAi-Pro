@@ -12,7 +12,7 @@ import { assertRuntimeStatus as assertRuntimeStatusPayload, IPC_CONTRACT_VERSION
 import { observability } from './observability';
 import { DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE, isDesktopRuntime } from './runtimeEnvironment';
 
-export const runtimeFallbackStatus: RuntimeStatus = {
+export const runtimeFallbackStatus: Readonly<RuntimeStatus> = {
   contractVersion: EXPECTED_IPC_CONTRACT_VERSION,
   ready: false,
   connectedDeviceId: null,
@@ -25,6 +25,25 @@ export const runtimeFallbackStatus: RuntimeStatus = {
     protocolDroppedFrames: 0
   }
 };
+
+export const cloneRuntimeStatus = (status: RuntimeStatus): RuntimeStatus => ({
+  contractVersion: status.contractVersion,
+  ready: status.ready,
+  connectedDeviceId: status.connectedDeviceId,
+  protocol: status.protocol,
+  dryRun: status.dryRun,
+  deviceStatus: status.deviceStatus
+    ? {
+        ...status.deviceStatus,
+        recentErrors: [...status.deviceStatus.recentErrors],
+        reconnect: { ...status.deviceStatus.reconnect },
+        circuitBreaker: { ...status.deviceStatus.circuitBreaker }
+      }
+    : null,
+  metrics: { ...status.metrics }
+});
+
+export const createRuntimeFallbackStatus = (): RuntimeStatus => cloneRuntimeStatus(runtimeFallbackStatus);
 
 const unavailableError = DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE;
 const unavailableRuntimeTags = ['runtime', 'degraded'] as const;
@@ -66,7 +85,7 @@ export const runtimeClient = {
         );
         loggedWebRuntimeFallback = true;
       }
-      return { ...runtimeFallbackStatus, compatible: true };
+      return { ...createRuntimeFallbackStatus(), compatible: true };
     }
 
     try {

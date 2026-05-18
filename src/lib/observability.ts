@@ -1,3 +1,5 @@
+import type { RuntimeStatus } from '../../desktop/ipc/contracts';
+
 export type ObservabilityLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface ObservabilityLogEntry {
@@ -237,7 +239,7 @@ const APP_VERSION = viteEnv.VITE_APP_VERSION ?? 'dev';
 
 export const buildIncidentReport = (options: {
   exportScope: 'private' | 'public';
-  runtimeStatus: unknown;
+  runtimeStatus: RuntimeStatus;
   appConfig: Record<string, unknown>;
 }): string => {
   const snapshot = observability.snapshot();
