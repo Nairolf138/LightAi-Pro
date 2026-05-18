@@ -33,9 +33,10 @@ export function AudioVisualizer({ audioUrl, isPlaying, onPlay, onPause }: AudioV
 
       return () => {
         wavesurfer.current?.destroy();
+        wavesurfer.current = null;
       };
     }
-  }, [audioUrl]);
+  }, [audioUrl, onPlay, onPause]);
 
   useEffect(() => {
     if (wavesurfer.current) {
