@@ -1,6 +1,6 @@
 import { Activity, Github, Lightbulb } from 'lucide-react';
 import { UserMenu } from '../UserMenu';
-import { useAppState } from '../../context/AppStateContext';
+import { useAppState } from '../../context/appState';
 
 export function Navbar() {
   const { profile, openAuthModal, diagnostics } = useAppState();

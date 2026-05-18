@@ -1,5 +1,5 @@
 import { MinusCircle, Pause, Play, PlusCircle, Sliders, Volume2, VolumeX } from 'lucide-react';
-import { useAppState } from '../../context/AppStateContext';
+import { useAppState } from '../../context/appState';
 import { effects } from '../../lib/effects';
 
 export function PlayerBar() {

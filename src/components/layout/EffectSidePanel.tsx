@@ -1,5 +1,5 @@
 import { Settings } from 'lucide-react';
-import { useAppState } from '../../context/AppStateContext';
+import { useAppState } from '../../context/appState';
 import { effects } from '../../lib/effects';
 import { EffectHistoryList } from '../EffectHistoryList';
 import { PresetManager } from '../PresetManager';

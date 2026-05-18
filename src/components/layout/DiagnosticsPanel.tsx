@@ -1,5 +1,5 @@
 import { AlertTriangle, Download, Shield } from 'lucide-react';
-import { useAppState } from '../../context/AppStateContext';
+import { useAppState } from '../../context/appState';
 import { getCurrentEnvironmentDiagnostics } from '../../lib/environmentDiagnostics';
 import { DESKTOP_RUNTIME_UNAVAILABLE_MESSAGE, isWebRuntime } from '../../lib/runtimeEnvironment';
 
