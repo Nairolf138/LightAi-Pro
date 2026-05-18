@@ -14,10 +14,10 @@ export class SacnOscAdapter implements RuntimeAdapter {
   async connect(): Promise<void> { this.connected = true; }
   async disconnect(): Promise<void> { this.connected = false; }
 
-  async sendFrame(_universe: number, _frame: ReadonlyArray<number>, _context: AdapterFrameContext): Promise<void> {
-    void _universe;
-    void _frame;
-    void _context;
+  async sendFrame(universe: number, frame: ReadonlyArray<number>, context: AdapterFrameContext): Promise<void> {
+    void universe;
+    void frame;
+    void context;
     if (!this.connected) throw new Error('sACN/OSC adapter not connected');
     this.lastProtocol = this.policy.protocolOrder[0] ?? 'sacn';
   }
