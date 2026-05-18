@@ -1,5 +1,5 @@
 import { assert, test } from '../harness';
-import { copilotReducer, initialCopilotState } from '../../src/features/copilot/CopilotWorkspace';
+import { copilotReducer, initialCopilotState } from '../../src/features/copilot/copilotState';
 
 test('flux copilot complet: draft brief → génération → diff → accept partiel → merge', () => {
   let state = { ...initialCopilotState };
