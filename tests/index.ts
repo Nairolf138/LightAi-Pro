@@ -9,6 +9,7 @@ import './unit/live-safety.unit.test';
 import './unit/ai-orchestrator.unit.test';
 import './unit/copilot-workspace.unit.test';
 import './unit/environment-diagnostics.unit.test';
+import './unit/runtime-status.unit.test';
 import './unit/safety-monitor.unit.test';
 import './contracts/ai-orchestrator.contract.test';
 import './integration/protocols.integration.test';

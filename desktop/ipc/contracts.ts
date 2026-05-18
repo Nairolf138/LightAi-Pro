@@ -137,6 +137,9 @@ export function assertRuntimeStatus(value: unknown): asserts value is RuntimeSta
   if (typeof value.dryRun !== 'boolean') {
     throw new Error('Invalid runtime status payload: missing dryRun flag.');
   }
+  if (!(value.deviceStatus === null || isRecord(value.deviceStatus))) {
+    throw new Error('Invalid runtime status payload: invalid deviceStatus.');
+  }
   if (!isRecord(value.metrics)) {
     throw new Error('Invalid runtime status payload: missing metrics.');
   }

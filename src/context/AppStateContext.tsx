@@ -1,47 +1,5 @@
 import { createContext, useContext, type ReactNode } from 'react';
-import type { RuntimeStatus } from '../../desktop/ipc/contracts';
-import type { ObservabilitySnapshot } from '../lib/observability';
-import type { Profile } from '../lib/supabase';
-
-interface PlaybackState {
-  isPlaying: boolean;
-  currentEffect: number;
-  currentTime: number;
-  volume: number;
-  isMuted: boolean;
-  togglePlay: () => void;
-  increaseVolume: () => void;
-  decreaseVolume: () => void;
-  toggleMute: () => void;
-}
-
-interface VirtualStageState {
-  showVirtualStage: boolean;
-  toggleVirtualStage: () => void;
-  presets: string[];
-  activePreset: number;
-  nextPreset: () => void;
-}
-
-interface DiagnosticsState {
-  isOpen: boolean;
-  toggle: () => void;
-  snapshot: ObservabilitySnapshot;
-  runtimeStatus: RuntimeStatus;
-  exportIncidentReport: (scope: 'private' | 'public') => void;
-}
-
-interface AppStateValue {
-  profile: Profile | null;
-  isAuthModalOpen: boolean;
-  openAuthModal: () => void;
-  closeAuthModal: () => void;
-  showEffectPanel: boolean;
-  toggleEffectPanel: () => void;
-  playback: PlaybackState;
-  virtualStage: VirtualStageState;
-  diagnostics: DiagnosticsState;
-}
+import type { AppStateValue } from './AppStateTypes';
 
 const AppStateContext = createContext<AppStateValue | null>(null);
 

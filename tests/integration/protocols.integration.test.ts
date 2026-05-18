@@ -134,6 +134,18 @@ test('IPC payloads invalides/champs manquants sont rejetés', async () => {
   assert.throws(() => assertConnectDeviceRequest({}), /Invalid connect device payload/);
   assert.throws(() => assertSendFrameRequest({ universe: 0 }), /channelValues/);
   assert.throws(() => assertRuntimeStatus({ ready: true }), /contractVersion/);
+  assert.throws(
+    () =>
+      assertRuntimeStatus({
+        contractVersion: IPC_CONTRACT_VERSION,
+        ready: false,
+        connectedDeviceId: null,
+        protocol: null,
+        dryRun: true,
+        metrics: { protocolQueueDepth: 0, protocolQueueHighWatermark: 0, protocolDroppedFrames: 0 },
+      }),
+    /deviceStatus/,
+  );
 });
 
 test('IPC payload extrême DMX est accepté (512 canaux)', async () => {
@@ -169,5 +181,5 @@ test('Snapshot schéma: SendFrameRequest', async () => {
 test('Snapshot schéma: RuntimeStatus', async () => {
   const snapshot = JSON.parse(readFileSync(join(process.cwd(), 'tests/snapshots/runtime-status.schema.json'), 'utf8'));
   assert.equal(snapshot.properties.contractVersion.const, IPC_CONTRACT_VERSION);
-  assert.deepEqual(snapshot.required.slice(0, 2), ['contractVersion', 'ready']);
+  assert.deepEqual(snapshot.required, ['contractVersion', 'ready', 'connectedDeviceId', 'protocol', 'dryRun', 'deviceStatus', 'metrics']);
 });

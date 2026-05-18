@@ -10,6 +10,7 @@ import { PlayerBar } from './components/layout/PlayerBar';
 import { ConflictResolutionPanel } from './components/ConflictResolutionPanel';
 import { CopilotWorkspace } from './features/copilot/CopilotWorkspace';
 import { AppStateProvider } from './context/AppStateContext';
+import type { AppStateValue } from './context/AppStateTypes';
 import { usePlaybackState } from './hooks/usePlaybackState';
 import { useSupabaseProfile } from './hooks/useSupabaseProfile';
 import {
@@ -25,11 +26,12 @@ import {
   initializeMainShowObservability,
   observability
 } from './lib/observability';
-import { runtimeClient, runtimeFallbackStatus } from './lib/runtimeClient';
+import { cloneRuntimeStatus, createRuntimeFallbackStatus, runtimeClient } from './lib/runtimeClient';
 import { isWebRuntime } from './lib/runtimeEnvironment';
 import { SUPABASE_DISABLED_MESSAGE, supabase } from './lib/supabase';
 import { emitAiSuggestionEvent } from './lib/aiSuggestionTelemetry';
 import type { CollaborationConflict, GuidedMergeResolution } from './lib/collaborationStrategy';
+import type { RuntimeStatus } from '../desktop/ipc/contracts';
 
 initializeMainShowObservability();
 
@@ -38,16 +40,7 @@ function App() {
   const [showVirtualStage, setShowVirtualStage] = useState(false);
   const [showEffectPanel, setShowEffectPanel] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
-  const [runtimeStatus, setRuntimeStatus] = useState(() => ({
-    ready: false,
-    connectedDeviceId: null,
-    protocol: null,
-    metrics: {
-      protocolQueueDepth: 0,
-      protocolQueueHighWatermark: 0,
-      protocolDroppedFrames: 0
-    }
-  }));
+  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus>(createRuntimeFallbackStatus);
   const profileState = useSupabaseProfile();
 
   const telemetryContext = useMemo(() => ({
@@ -70,7 +63,7 @@ function App() {
       runtimeClient
         .getRuntimeStatus()
         .then((status) => {
-          setRuntimeStatus(status);
+          setRuntimeStatus(cloneRuntimeStatus(status));
           observability.setProtocolMetrics({
             queueDepth: status.metrics.protocolQueueDepth,
             queueHighWatermark: status.metrics.protocolQueueHighWatermark,
@@ -85,7 +78,7 @@ function App() {
     };
 
     if (isWebRuntime) {
-      setRuntimeStatus(runtimeFallbackStatus);
+      setRuntimeStatus(createRuntimeFallbackStatus());
       observability.debug('runtime', 'Browser/dev runtime fallback active', undefined, ['runtime', 'web']);
       return undefined;
     }
@@ -332,7 +325,7 @@ function App() {
     [playbackState.currentEffect, playbackState.isMuted, playbackState.volume, profileState.profile, runtimeStatus, showEffectPanel, showVirtualStage]
   );
 
-  const appState = useMemo(
+  const appState = useMemo<AppStateValue>(
     () => ({
       profile: profileState.profile,
       isAuthModalOpen: profileState.isAuthModalOpen,
