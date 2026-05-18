@@ -40,6 +40,9 @@ jobs:
         run: npm run lint
 
       - name: Validate frontend and desktop package
+        env:
+          GH_RELEASE_OWNER: ${{ github.repository_owner }}
+          GH_RELEASE_REPO: ${{ github.event.repository.name }}
         run: |
           npm run build
           npm run compile --prefix desktop
