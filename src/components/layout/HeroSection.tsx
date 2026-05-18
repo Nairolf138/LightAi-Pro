@@ -1,6 +1,6 @@
 import { ChevronRight, Github, Maximize2 } from 'lucide-react';
 import { VirtualStageCanvas } from './VirtualStageCanvas';
-import { useAppState } from '../../context/AppStateContext';
+import { useAppState } from '../../context/appState';
 
 export function HeroSection() {
   const {

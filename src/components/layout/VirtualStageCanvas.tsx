@@ -1,5 +1,5 @@
 import { Command, Eye, Laptop2 } from 'lucide-react';
-import { useAppState } from '../../context/AppStateContext';
+import { useAppState } from '../../context/appState';
 import { useVirtualStageCanvas } from '../../hooks/useVirtualStageCanvas';
 
 export function VirtualStageCanvas() {
