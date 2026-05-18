@@ -32,7 +32,6 @@ export class TimeSyncClockAuthority {
   private jitterMs = 0;
   private lockLossCount = 0;
   private resyncEvents = 0;
-  private readonly alpha = 0.2;
   private readonly lockTimeoutMs: number;
   private readonly nowFn: () => number;
   private lastFrameAtMs: number | null = null;
@@ -69,12 +68,12 @@ export class TimeSyncClockAuthority {
 
     if (this.lastFrameDriftMs !== null) {
       const delta = rawDrift - this.lastFrameDriftMs;
-      this.jitterMs = Math.abs(delta);
+      this.jitterMs = Math.max(this.jitterMs, Math.abs(delta));
     }
 
     this.lastFrameDriftMs = rawDrift;
     this.driftMs = rawDrift;
-    this.smoothedDriftMs = this.smoothedDriftMs + this.alpha * (rawDrift - this.smoothedDriftMs);
+    this.smoothedDriftMs = rawDrift;
 
     this.lastFrameAtMs = frame.receivedAtMs;
     const wasLocked = this.status === 'locked';
@@ -99,6 +98,7 @@ export class TimeSyncClockAuthority {
     if (elapsed > this.lockTimeoutMs && this.status === 'locked') {
       this.status = 'degraded';
       this.lockLossCount += 1;
+      this.jitterMs = Math.max(this.jitterMs, elapsed - this.lockTimeoutMs);
     }
   }
 
