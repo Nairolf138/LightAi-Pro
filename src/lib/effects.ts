@@ -3,7 +3,7 @@ import { AudioAnalyzer, type EnergyBands } from '../core/audio';
 export interface Effect {
   name: string;
   color: string;
-  configuration: Record<string, any>;
+  configuration: Record<string, unknown>;
   render: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, analyzer?: AudioAnalyzer) => void;
 }
 
@@ -43,7 +43,7 @@ const createGradient = (ctx: CanvasRenderingContext2D, colors: string[]) => {
   return gradient;
 };
 
-export const effects: Effect[] = [
+export const effects = [
   {
     name: 'Color Chase',
     color: '#FFD700',
@@ -158,7 +158,7 @@ export const effects: Effect[] = [
       maxSpeed: 2,
       connectionRadius: 100
     },
-    render: (ctx, canvas, analyzer) => {
+    render: (ctx, canvas) => {
       const { particleCount, maxSpeed, connectionRadius } = effects[3].configuration;
       
       interface Particle {
@@ -220,7 +220,7 @@ export const effects: Effect[] = [
       rotationSpeed: 1,
       thickness: 2
     },
-    render: (ctx, canvas, analyzer) => {
+    render: (ctx, canvas) => {
       const { beamCount, rotationSpeed, thickness } = effects[4].configuration;
       const time = Date.now() * 0.001 * rotationSpeed;
 
@@ -262,4 +262,4 @@ export const effects: Effect[] = [
       }
     }
   }
-];
+] satisfies Effect[];
