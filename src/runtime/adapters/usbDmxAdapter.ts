@@ -13,6 +13,9 @@ export class UsbDmxAdapter implements RuntimeAdapter {
   async disconnect(): Promise<void> { this.connected = false; }
 
   async sendFrame(_universe: number, _frame: ReadonlyArray<number>, _context: AdapterFrameContext): Promise<void> {
+    void _universe;
+    void _frame;
+    void _context;
     if (!this.connected) throw new Error('USB DMX adapter not connected');
   }
 
